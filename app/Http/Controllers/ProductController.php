@@ -23,9 +23,8 @@ class ProductController extends Controller
 {
     public function __construct()
     {
-        if(Auth::check())
-        {
-            $userlang=\Auth::user()->lang;
+        if (Auth::check()) {
+            $userlang = \Auth::user()->lang;
             \App::setLocale($userlang);
         }
     }
@@ -74,31 +73,27 @@ class ProductController extends Controller
         $store_id = Store::where('id', $user->current_store)->first();
 
         $validator = \Validator::make(
-            $request->all(), [
-                               'name' => 'required|max:120',
-                           ]
+            $request->all(),
+            [
+                'name' => 'required|max:120',
+            ]
         );
-        if($request->enable_product_variant == '')
-        {
+        if ($request->enable_product_variant == '') {
             $validator = \Validator::make(
-                $request->all(), [
-                                   'price' => 'required',
-                                   'quantity' => 'required',
-                                   'is_cover_image' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                                   'downloadable_prodcut' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                               ]
+                $request->all(),
+                [
+                    'price' => 'required',
+                    'quantity' => 'required',
+                    'is_cover_image' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                    'downloadable_prodcut' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                ]
             );
         }
-        if($request->enable_product_variant == 'on')
-        {
-            if(!empty($request->verians))
-            {
-                foreach($request->verians as $k => $items)
-                {
-                    foreach($items as $item_k => $item)
-                    {
-                        if(empty($item) && $item < 0)
-                        {
+        if ($request->enable_product_variant == 'on') {
+            if (!empty($request->verians)) {
+                foreach ($request->verians as $k => $items) {
+                    foreach ($items as $item_k => $item) {
+                        if (empty($item) && $item < 0) {
                             $msg['flag'] = 'error';
                             $msg['msg']  = __('Please Fill The Form');
 
@@ -106,17 +101,14 @@ class ProductController extends Controller
                         }
                     }
                 }
-            }
-            else
-            {
+            } else {
                 $msg['flag'] = 'error';
                 $msg['msg']  = __('Please Add Variants');
 
                 return $msg;
             }
         }
-        if($validator->fails())
-        {
+        if ($validator->fails()) {
             $messages = $validator->getMessageBag();
 
             $msg['flag'] = 'error';
@@ -126,82 +118,68 @@ class ProductController extends Controller
         }
 
         $file_name = [];
-        if(!empty($request->multiple_files) && count($request->multiple_files) > 0)
-        {
-            foreach($request->multiple_files as $file)
-            {
+        if (!empty($request->multiple_files) && count($request->multiple_files) > 0) {
+            foreach ($request->multiple_files as $file) {
                 $filenameWithExt = $file->getClientOriginalName();
                 $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                 $extension       = $file->getClientOriginalExtension();
                 $fileNameToStore = $filename . '_' . time() . '.' . $extension;
                 $file_name[]     = $fileNameToStore;
-                $dir             = storage_path('uploads/product_image/');
-                if(!file_exists($dir))
-                {
+                $dir             = storage_path('app/public/uploads/product_image/');
+                if (!file_exists($dir)) {
                     mkdir($dir, 0777, true);
                 }
-                $path = $file->storeAs('uploads/product_image/', $fileNameToStore);
+                $path = $file->storeAs('app/public/uploads/product_image/', $fileNameToStore);
             }
-
         }
 
-        if(!empty($request->is_cover_image))
-        {
+        if (!empty($request->is_cover_image)) {
             $filenameWithExt  = $request->file('is_cover_image')->getClientOriginalName();
             $filename         = pathinfo($filenameWithExt, PATHINFO_FILENAME);
             $extension        = $request->file('is_cover_image')->getClientOriginalExtension();
             $fileNameToStores = $filename . '_' . time() . '.' . $extension;
-            $dir              = storage_path('uploads/is_cover_image/');
-            if(!file_exists($dir))
-            {
+            $dir              = storage_path('app/public/uploads/is_cover_image/');
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
-            $path = $request->file('is_cover_image')->storeAs('uploads/is_cover_image/', $fileNameToStores);
+            $path = $request->file('is_cover_image')->storeAs('app/public/uploads/is_cover_image/', $fileNameToStores);
         }
 
-        if(!empty($request->attachment))
-        {
+        if (!empty($request->attachment)) {
             $filenameWithExt = $request->file('attachment')->getClientOriginalName();
             $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
             $extension       = $request->file('attachment')->getClientOriginalExtension();
             $fileAttachment  = $filename . '_' . time() . '.' . $extension;
-            $dir             = storage_path('uploads/is_cover_image/');
-            if(!file_exists($dir))
-            {
+            $dir             = storage_path('app/public/uploads/is_cover_image/');
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
-            $path = $request->file('attachment')->storeAs('uploads/is_cover_image/', $fileAttachment);
+            $path = $request->file('attachment')->storeAs('app/public/uploads/is_cover_image/', $fileAttachment);
         }
-        if(!empty($request->downloadable_prodcut))
-        {
+        if (!empty($request->downloadable_prodcut)) {
             $filenameWithExt   = $request->file('downloadable_prodcut')->getClientOriginalName();
             $filename          = pathinfo($filenameWithExt, PATHINFO_FILENAME);
             $extension         = $request->file('downloadable_prodcut')->getClientOriginalExtension();
             $filedownloadable1 = $filename . '_' . time() . '.' . $extension;
-            $dir               = storage_path('uploads/downloadable_prodcut/');
-            if(!file_exists($dir))
-            {
+            $dir               = storage_path('app/public/uploads/downloadable_prodcut/');
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
             $filedownloadable = str_replace(' ', '_', $filedownloadable1);
 
-            $path = $request->file('downloadable_prodcut')->storeAs('uploads/downloadable_prodcut/', $filedownloadable);
+            $path = $request->file('downloadable_prodcut')->storeAs('app/public/uploads/downloadable_prodcut/', $filedownloadable);
         }
 
-        if(!empty($request->product_tax))
-        {
-            if(count($request->product_tax) > 1 && in_array(0, $request->product_tax))
-            {
+        if (!empty($request->product_tax)) {
+            if (count($request->product_tax) > 1 && in_array(0, $request->product_tax)) {
                 $msg['flag'] = 'error';
                 $msg['msg']  = __('Please select valid tax');
 
                 return $msg;
             }
         }
-        if(!empty($request->product_categorie))
-        {
-            if(count($request->product_categorie) > 1 && in_array(0, $request->product_categorie))
-            {
+        if (!empty($request->product_categorie)) {
+            if (count($request->product_categorie) > 1 && in_array(0, $request->product_categorie)) {
                 $msg['flag'] = 'error';
                 $msg['msg']  = __('Please select valid Categorie');
 
@@ -215,35 +193,26 @@ class ProductController extends Controller
         $plan          = Plan::find($creator->plan);
 
 
-        if($total_product < $plan->max_products || $plan->max_products == -1)
-        {
+        if ($total_product < $plan->max_products || $plan->max_products == -1) {
             $product             = new Product();
             $product['store_id'] = $store_id->id;
             $product['name']     = $request->name;
-            if(!empty($request->product_categorie))
-            {
+            if (!empty($request->product_categorie)) {
                 $product['product_categorie'] = implode(',', $request->product_categorie);
-            }
-            else
-            {
+            } else {
                 $product['product_categorie'] = $request->product_categorie;
             }
-            if(!empty($request->price))
-            {
+            if (!empty($request->price)) {
                 $product['price']      = !empty($request->price) ? $request->price : '0';
                 $product['last_price'] = !empty($request->last_price) ? $request->last_price : '0';
             }
-            if(!empty($request->quantity))
-            {
+            if (!empty($request->quantity)) {
                 $product['quantity'] = !empty($request->quantity) ? $request->quantity : '0';
             }
             $product['SKU'] = $request->SKU;
-            if(!empty($request->product_tax))
-            {
+            if (!empty($request->product_tax)) {
                 $product['product_tax'] = implode(',', $request->product_tax);
-            }
-            else
-            {
+            } else {
                 $product['product_tax'] = $request->product_tax;
             }
 
@@ -269,10 +238,8 @@ class ProductController extends Controller
 
             $product->save();
 
-            if(!empty($file_name))
-            {
-                foreach($file_name as $file)
-                {
+            if (!empty($file_name)) {
+                foreach ($file_name as $file) {
                     $objStore = Product_images::create(
                         [
                             'product_id' => $product->id,
@@ -281,16 +248,14 @@ class ProductController extends Controller
                     );
                 }
             }
-            if($request->enable_product_variant == 'on')
-            {
+            if ($request->enable_product_variant == 'on') {
                 $product->variants_json = json_decode($product->variants_json, true);
 
                 $variant_options = array_column($product->variants_json, 'variant_options');
 
                 $possibilities = Product::possibleVariants($variant_options);
 
-                foreach($possibilities as $key => $possibility)
-                {
+                foreach ($possibilities as $key => $possibility) {
                     $VariantOption             = new ProductVariantOption();
                     $VariantOption->name       = $possibility;
                     $VariantOption->product_id = $product->id;
@@ -300,21 +265,16 @@ class ProductController extends Controller
                     $VariantOption->save();
                 }
             }
-            if(!empty($product))
-            {
+            if (!empty($product)) {
                 $msg['flag'] = 'success';
                 $msg['msg']  = __('Product Successfully Created');
-            }
-            else
-            {
+            } else {
                 $msg['flag'] = 'error';
                 $msg['msg']  = __('Product Created Failed');
             }
 
             return $msg;
-        }
-        else
-        {
+        } else {
             $msg['flag'] = 'error';
             $msg['msg']  = __('Your product limit is over Please upgrade plan');
 
@@ -341,14 +301,10 @@ class ProductController extends Controller
 
         $ratting    = Ratting::where('product_id', $product->id)->where('rating_view', 'on')->sum('ratting');
         $user_count = Ratting::where('product_id', $product->id)->where('rating_view', 'on')->count();
-        if($user_count > 0)
-        {
+        if ($user_count > 0) {
             $avg_rating = number_format($ratting / $user_count, 1);
-        }
-        else
-        {
+        } else {
             $avg_rating = number_format($ratting / 1, 1);
-
         }
 
         $variant_name          = json_decode($product->variants_json);
@@ -375,18 +331,15 @@ class ProductController extends Controller
         $productVariantArrays  = [];
         $product_variant_names = [];
         $variant_options       = [];
-        if($product->enable_product_variant == 'on')
-        {
+        if ($product->enable_product_variant == 'on') {
             $productVariants = ProductVariantOption::where('product_id', $product->id)->get();
 
-            if(!empty(json_decode($product->variants_json)))
-            {
+            if (!empty(json_decode($product->variants_json))) {
                 $variant_options       = array_column(json_decode($product->variants_json), 'variant_name');
                 $product_variant_names = $variant_options;
             }
 
-            foreach($productVariants as $key => $productVariant)
-            {
+            foreach ($productVariants as $key => $productVariant) {
                 $productVariantArrays[$key]['product_variants'] = $productVariant->toArray();
             }
         }
@@ -415,31 +368,27 @@ class ProductController extends Controller
         $store_id = Store::where('id', $user->current_store)->first();
 
         $validator = \Validator::make(
-            $request->all(), [
-                               'name' => 'required|max:120',
-                           ]
+            $request->all(),
+            [
+                'name' => 'required|max:120',
+            ]
         );
-        if($request->enable_product_variant == '')
-        {
+        if ($request->enable_product_variant == '') {
             $validator = \Validator::make(
-                $request->all(), [
-                                   'price' => 'required',
-                                   'quantity' => 'required',
-                                   'is_cover_image' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                                   'downloadable_prodcut' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                               ]
+                $request->all(),
+                [
+                    'price' => 'required',
+                    'quantity' => 'required',
+                    'is_cover_image' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                    'downloadable_prodcut' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                ]
             );
         }
-        if($request->enable_product_variant == 'on')
-        {
-            if(!empty($request->variants))
-            {
-                foreach($request->variants as $k => $items)
-                {
-                    foreach($items as $item_k => $item)
-                    {
-                        if(empty($item))
-                        {
+        if ($request->enable_product_variant == 'on') {
+            if (!empty($request->variants)) {
+                foreach ($request->variants as $k => $items) {
+                    foreach ($items as $item_k => $item) {
+                        if (empty($item)) {
                             $msg['flag'] = 'error';
                             $msg['msg']  = __('Please Fill The Form');
 
@@ -447,17 +396,14 @@ class ProductController extends Controller
                         }
                     }
                 }
-            }
-            else
-            {
+            } else {
                 $msg['flag'] = 'error';
                 $msg['msg']  = __('Please Add Variants');
 
                 return $msg;
             }
         }
-        if($validator->fails())
-        {
+        if ($validator->fails()) {
             $messages = $validator->getMessageBag();
 
             $msg['flag'] = 'error';
@@ -468,127 +414,102 @@ class ProductController extends Controller
 
         $file_name = [];
 
-        if(!empty($request->multiple_files) && count($request->multiple_files) > 0)
-        {
-            foreach($request->multiple_files as $file)
-            {
+        if (!empty($request->multiple_files) && count($request->multiple_files) > 0) {
+            foreach ($request->multiple_files as $file) {
 
                 $filenameWithExt = $file->getClientOriginalName();
                 $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                 $extension       = $file->getClientOriginalExtension();
                 $fileNameToStore = $filename . '_' . time() . '.' . $extension;
                 $file_name[]     = $fileNameToStore;
-                $dir             = storage_path('uploads/product_image/');
-                if(!file_exists($dir))
-                {
+                $dir             = storage_path('app/public/uploads/product_image/');
+                if (!file_exists($dir)) {
                     mkdir($dir, 0777, true);
                 }
-                $path = $file->storeAs('uploads/product_image/', $fileNameToStore);
+                $path = $file->storeAs('app/public/uploads/product_image/', $fileNameToStore);
             }
-
         }
 
-        if(!empty($request->attachment))
-        {
-            if(asset(Storage::exists('uploads/is_cover_image/' . $product->attachment)))
-            {
-                asset(Storage::delete('uploads/is_cover_image/' . $product->attachment));
+        if (!empty($request->attachment)) {
+            if (asset(Storage::exists('app/public/uploads/is_cover_image/' . $product->attachment))) {
+                asset(Storage::delete('app/public/uploads/is_cover_image/' . $product->attachment));
             }
 
             $filenameWithExt = $request->file('attachment')->getClientOriginalName();
             $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
             $extension       = $request->file('attachment')->getClientOriginalExtension();
             $fileAttachment  = $filename . '_' . time() . '.' . $extension;
-            $dir             = storage_path('uploads/is_cover_image/');
-            if(!file_exists($dir))
-            {
+            $dir             = storage_path('app/public/uploads/is_cover_image/');
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
-            $path = $request->file('attachment')->storeAs('uploads/is_cover_image/', $fileAttachment);
+            $path = $request->file('attachment')->storeAs('app/public/uploads/is_cover_image/', $fileAttachment);
         }
 
-        if(!empty($request->downloadable_prodcut))
-        {
-            if(asset(Storage::exists('uploads/is_cover_image/' . $product->downloadable_prodcut)))
-            {
-                asset(Storage::delete('uploads/is_cover_image/' . $product->downloadable_prodcut));
+        if (!empty($request->downloadable_prodcut)) {
+            if (asset(Storage::exists('app/public/uploads/is_cover_image/' . $product->downloadable_prodcut))) {
+                asset(Storage::delete('app/public/uploads/is_cover_image/' . $product->downloadable_prodcut));
             }
 
             $filenameWithExt   = $request->file('downloadable_prodcut')->getClientOriginalName();
             $filename          = pathinfo($filenameWithExt, PATHINFO_FILENAME);
             $extension         = $request->file('downloadable_prodcut')->getClientOriginalExtension();
             $filedownloadable1 = $filename . '_' . time() . '.' . $extension;
-            $dir               = storage_path('uploads/downloadable_prodcut/');
-            if(!file_exists($dir))
-            {
+            $dir               = storage_path('app/public/uploads/downloadable_prodcut/');
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
             $filedownloadable = str_replace(' ', '_', $filedownloadable1);
 
-            $path = $request->file('downloadable_prodcut')->storeAs('uploads/downloadable_prodcut/', $filedownloadable);
+            $path = $request->file('downloadable_prodcut')->storeAs('app/public/uploads/downloadable_prodcut/', $filedownloadable);
         }
 
-        if(!empty($request->is_cover_image))
-        {
-            if(asset(Storage::exists('uploads/is_cover_image/' . $product->is_cover)))
-            {
-                asset(Storage::delete('uploads/is_cover_image/' . $product->is_cover));
+        if (!empty($request->is_cover_image)) {
+            if (asset(Storage::exists('app/public/uploads/is_cover_image/' . $product->is_cover))) {
+                asset(Storage::delete('app/public/uploads/is_cover_image/' . $product->is_cover));
             }
 
             $filenameWithExt  = $request->file('is_cover_image')->getClientOriginalName();
             $filename         = pathinfo($filenameWithExt, PATHINFO_FILENAME);
             $extension        = $request->file('is_cover_image')->getClientOriginalExtension();
             $fileNameToStores = $filename . '_' . time() . '.' . $extension;
-            $dir              = storage_path('uploads/is_cover_image/');
-            if(!file_exists($dir))
-            {
+            $dir              = storage_path('app/public/uploads/is_cover_image/');
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
-            $path = $request->file('is_cover_image')->storeAs('uploads/is_cover_image/', $fileNameToStores);
+            $path = $request->file('is_cover_image')->storeAs('app/public/uploads/is_cover_image/', $fileNameToStores);
         }
 
-        if(!empty($request->product_tax))
-        {
-            if(count($request->product_tax) > 1 && in_array(0, $request->product_tax))
-            {
+        if (!empty($request->product_tax)) {
+            if (count($request->product_tax) > 1 && in_array(0, $request->product_tax)) {
                 return redirect()->back()->with('error', __('Please select valid tax'));
             }
         }
 
-        if(!empty($request->product_categorie))
-        {
-            if(count($request->product_categorie) > 1 && in_array(0, $request->product_categorie))
-            {
+        if (!empty($request->product_categorie)) {
+            if (count($request->product_categorie) > 1 && in_array(0, $request->product_categorie)) {
                 return redirect()->back()->with('error', __('Please select valid Categorie'));
             }
         }
 
         $product['store_id'] = $store_id->id;
         $product['name']     = $request->name;
-        if(!empty($request->product_categorie))
-        {
+        if (!empty($request->product_categorie)) {
             $product['product_categorie'] = implode(',', $request->product_categorie);
-        }
-        else
-        {
+        } else {
             $product['product_categorie'] = $request->product_categorie;
         }
-        if(!empty($request->price))
-        {
+        if (!empty($request->price)) {
             $product['price']      = !empty($request->price) ? $request->price : '0';
             $product['last_price'] = !empty($request->last_price) ? $request->last_price : '0';
         }
-        if(!empty($request->quantity))
-        {
+        if (!empty($request->quantity)) {
             $product['quantity'] = !empty($request->quantity) ? $request->quantity : '0';
         }
         $product['SKU'] = $request->SKU;
-        if(!empty($request->product_tax))
-        {
+        if (!empty($request->product_tax)) {
             $product['product_tax'] = implode(',', $request->product_tax);
-        }
-        else
-        {
+        } else {
             $product['product_tax'] = $request->product_tax;
         }
 
@@ -605,16 +526,14 @@ class ProductController extends Controller
         $product['downloadable_prodcut']   = !empty($request->downloadable_prodcut) ? $filedownloadable : '';
         $product['product_display']        = isset($request->product_display) ? 'on' : 'off';
         $product['enable_product_variant'] = isset($request->enable_product_variant) ? 'on' : 'off';
-        if(!empty($request->is_cover_image))
-        {
+        if (!empty($request->is_cover_image)) {
             $product['is_cover'] = $fileNameToStores;
         }
         $product['description']   = $request->description;
         $product['specification'] = $request->specification;
         $product['detail']        = $request->detail;
         $product['created_by']    = \Auth::user()->creatorId();
-        foreach($file_name as $file)
-        {
+        foreach ($file_name as $file) {
             $objStore = Product_images::create(
                 [
                     'product_id' => $product->id,
@@ -624,19 +543,13 @@ class ProductController extends Controller
             );
         }
         $product->save();
-        if($product->enable_product_variant == 'on')
-        {
-            foreach($request->variants as $key => $variant)
-            {
+        if ($product->enable_product_variant == 'on') {
+            foreach ($request->variants as $key => $variant) {
                 $newVal = '';
-                foreach(array_values($variant['variants']) as $k => $v)
-                {
-                    if(!empty($newVal))
-                    {
+                foreach (array_values($variant['variants']) as $k => $v) {
+                    if (!empty($newVal)) {
                         $newVal .= ' : ' . $v[0];
-                    }
-                    else
-                    {
+                    } else {
                         $newVal .= $v[0];
                     }
                 }
@@ -650,13 +563,10 @@ class ProductController extends Controller
             }
         }
 
-        if(!empty($product))
-        {
+        if (!empty($product)) {
             $msg['flag'] = 'success';
             $msg['msg']  = __('Product Successfully Created');
-        }
-        else
-        {
+        } else {
             $msg['flag'] = 'error';
             $msg['msg']  = __('Product Created Failed');
         }
@@ -677,13 +587,11 @@ class ProductController extends Controller
 
         $Product_images = Product_images::where('product_id', $product->id)->get();
         $pro_img        = new ProductController();
-        foreach($Product_images as $pro)
-        {
+        foreach ($Product_images as $pro) {
             $pro_img->fileDelete($pro->id);
         }
-        $dir = storage_path('uploads/is_cover_image/');
-        if(!empty($product->is_cover))
-        {
+        $dir = storage_path('app/public/uploads/is_cover_image/');
+        if (!empty($product->is_cover)) {
             unlink($dir . $product->is_cover);
         }
         ProductVariantOption::where('product_id', $product->id)->delete();
@@ -705,11 +613,9 @@ class ProductController extends Controller
     {
         $product_img_id = Product_images::find($id);
 
-        $dir = storage_path('uploads/product_image/');
-        if(!empty($product_img_id->product_images))
-        {
-            if(!file_exists($dir . $product_img_id->product_images))
-            {
+        $dir = storage_path('app/public/uploads/product_image/');
+        if (!empty($product_img_id->product_images)) {
+            if (!file_exists($dir . $product_img_id->product_images)) {
                 Product_images::where('id', $id)->delete();
 
                 return response()->json(
@@ -718,9 +624,7 @@ class ProductController extends Controller
                         'id' => $id,
                     ]
                 );
-            }
-            else
-            {
+            } else {
                 unlink($dir . $product_img_id->product_images);
                 Product_images::where('id', '=', $id)->delete();
 
@@ -764,8 +668,7 @@ class ProductController extends Controller
         $hiddenVariantOptions = array_merge($hiddenVariantOptions, $variants);
 
         $optionArray = $variantArray = [];
-        foreach($hiddenVariantOptions as $variant)
-        {
+        foreach ($hiddenVariantOptions as $variant) {
             $variantArray[] = $variant['variant_name'];
             $optionArray[]  = $variant['variant_options'];
         }
@@ -793,12 +696,10 @@ class ProductController extends Controller
         $price   = \App\Models\Utility::priceFormat(0);
         $status  = false;
 
-        if($product && $request->variants != '')
-        {
+        if ($product && $request->variants != '') {
             $variant = ProductVariantOption::where('product_id', $product['id'])->where('name', $request->variants)->first();
 
-            if($variant)
-            {
+            if ($variant) {
                 $status     = true;
                 $quantity   = $variant->quantity - (isset($cart[$variant->id]['quantity']) ? $cart[$variant->id]['quantity'] : 0);
                 $price      = \App\Models\Utility::priceFormat($variant->price);
@@ -823,16 +724,15 @@ class ProductController extends Controller
         return redirect()->back()->with('success', __('Variant successfully deleted.'));
     }
 
-       public function fileExport() 
+    public function fileExport()
     {
-      
+
 
         $name = 'product_' . date('Y-m-d i:h:s');
-        $data = Excel::download(new ProductExport(), $name . '.xlsx');  ob_end_clean();
-        
+        $data = Excel::download(new ProductExport(), $name . '.xlsx');
+        ob_end_clean();
+
 
         return $data;
-    } 
-
+    }
 }
-

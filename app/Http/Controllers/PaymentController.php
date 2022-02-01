@@ -1688,12 +1688,12 @@ class PaymentController extends Controller
             $request = $request->all();
             if(!empty($store->logo))
             {
-                $logo = asset(Storage::url('uploads/store_logo/' . $store->logo));
+                $logo = asset(Storage::url('app/public/uploads/store_logo/' . $store->logo));
             }
             else
             {
 
-                $logo = asset(Storage::url('uploads/store_logo/logo.png'));
+                $logo = asset(Storage::url('app/public/uploads/store_logo/logo.png'));
             }
 
             $skill               = new SkrillRequest();
@@ -2963,11 +2963,11 @@ class PaymentController extends Controller
             $order                 = $request->all();
             if(!empty($store->logo))
             {
-                $logo = asset(Storage::url('uploads/store_logo/' . $store->logo));
+                $logo = asset(Storage::url('app/public/uploads/store_logo/' . $store->logo));
             }
             else
             {
-                $logo = asset(Storage::url('uploads/store_logo/logo.png'));
+                $logo = asset(Storage::url('app/public/uploads/store_logo/logo.png'));
             }
 
             $skill               = new SkrillRequest();

@@ -43,37 +43,34 @@ class ProductCategorieController extends Controller
      */
     public function store(Request $request)
     {
-        $pro_cat = ProductCategorie::where('name', $request->name)->where('store_id',Auth::user()->current_store)->first();
-        if(!empty($pro_cat))
-        {
+        $pro_cat = ProductCategorie::where('name', $request->name)->where('store_id', Auth::user()->current_store)->first();
+        if (!empty($pro_cat)) {
             return redirect()->back()->with('error', __('Product Category Already Exist!'));
         }
         $this->validate(
-            $request, [
-                        'name' => 'required|max:40',
-                        'categorie_img' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                    ]
+            $request,
+            [
+                'name' => 'required|max:40',
+                'categorie_img' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+            ]
         );
 
-        if(!empty($request->categorie_img))
-        {
+        if (!empty($request->categorie_img)) {
             $filenameWithExt  = $request->file('categorie_img')->getClientOriginalName();
             $filename         = pathinfo($filenameWithExt, PATHINFO_FILENAME);
             $extension        = $request->file('categorie_img')->getClientOriginalExtension();
             $fileNameToStores = $filename . '_' . time() . '.' . $extension;
-            $dir              = storage_path('uploads/product_image/');
-            if(!file_exists($dir))
-            {
+            $dir              = storage_path('app/public/uploads/product_image/');
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
-            $path = $request->file('categorie_img')->storeAs('uploads/product_image/', $fileNameToStores);
+            $path = $request->file('categorie_img')->storeAs('app/public/uploads/product_image/', $fileNameToStores);
         }
 
         $productCategorie             = new ProductCategorie();
         $productCategorie['store_id'] = \Auth::user()->current_store;
         $productCategorie['name']     = $request->name;
-        if(!empty($fileNameToStores))
-        {
+        if (!empty($fileNameToStores)) {
             $productCategorie['categorie_img'] = $fileNameToStores;
         }
         $productCategorie['created_by'] = \Auth::user()->creatorId();
@@ -119,19 +116,17 @@ class ProductCategorieController extends Controller
         $pro_cat = ProductCategorie::where('name', $request->name)->where('store_id', Auth::user()->current_store)->first();
 
         $this->validate(
-            $request, [
-                        'name' => 'required|max:40',
-                        'categorie_img' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                    ]
+            $request,
+            [
+                'name' => 'required|max:40',
+                'categorie_img' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+            ]
         );
 
-        if(!empty($request->categorie_img))
-        {
-            if(!empty($pro_cat->categorie_img))
-            {
-                if(asset(Storage::exists('uploads/product_image/' . $pro_cat->categorie_img)))
-                {
-                    asset(Storage::delete('uploads/product_image/' . $pro_cat->categorie_img));
+        if (!empty($request->categorie_img)) {
+            if (!empty($pro_cat->categorie_img)) {
+                if (asset(Storage::exists('app/public/uploads/product_image/' . $pro_cat->categorie_img))) {
+                    asset(Storage::delete('app/public/uploads/product_image/' . $pro_cat->categorie_img));
                 }
             }
 
@@ -139,24 +134,21 @@ class ProductCategorieController extends Controller
             $filename         = pathinfo($filenameWithExt, PATHINFO_FILENAME);
             $extension        = $request->file('categorie_img')->getClientOriginalExtension();
             $fileNameToStores = $filename . '_' . time() . '.' . $extension;
-            $dir              = storage_path('uploads/product_image/');
-            if(asset(Storage::exists('uploads/product_image/' . ($productCategorie['categorie_img']))))
-            {
-                asset(Storage::delete('uploads/product_image/' . $productCategorie['categorie_img']));
+            $dir              = storage_path('app/public/uploads/product_image/');
+            if (asset(Storage::exists('app/public/uploads/product_image/' . ($productCategorie['categorie_img'])))) {
+                asset(Storage::delete('app/public/uploads/product_image/' . $productCategorie['categorie_img']));
             }
 
-            if(!file_exists($dir))
-            {
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
 
-            $path = $request->file('categorie_img')->storeAs('uploads/product_image/', $fileNameToStores);
+            $path = $request->file('categorie_img')->storeAs('app/public/uploads/product_image/', $fileNameToStores);
         }
 
 
         $productCategorie['name'] = $request->name;
-        if(!empty($fileNameToStores))
-        {
+        if (!empty($fileNameToStores)) {
             $productCategorie['categorie_img'] = $fileNameToStores;
         }
         $productCategorie['created_by'] = \Auth::user()->creatorId();
@@ -176,18 +168,17 @@ class ProductCategorieController extends Controller
     {
         $product = Product::where('product_categorie', $productCategorie->id)->get();
 
-        if($product->count() != 0)
-        {
+        if ($product->count() != 0) {
             return redirect()->back()->with(
-                'error', __('Category is used in products!')
+                'error',
+                __('Category is used in products!')
             );
-        }
-        else
-        {
+        } else {
             $productCategorie->delete();
 
             return redirect()->back()->with(
-                'success', __('Product Category Deleted!')
+                'success',
+                __('Product Category Deleted!')
             );
         }
     }

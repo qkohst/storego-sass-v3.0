@@ -64,12 +64,12 @@ class BlogController extends Controller
         {
             $extension           = $request->file('blog_cover_image')->getClientOriginalExtension();
             $fileNameToStoreBlog = 'blog' . '_' . time() . '.' . $extension;
-            $dir                 = storage_path('uploads/store_logo/');
+            $dir                 = storage_path('app/public/uploads/store_logo/');
             if(!file_exists($dir))
             {
                 mkdir($dir, 0777, true);
             }
-            $path = $request->file('blog_cover_image')->storeAs('uploads/store_logo/', $fileNameToStoreBlog);
+            $path = $request->file('blog_cover_image')->storeAs('app/public/uploads/store_logo/', $fileNameToStoreBlog);
 
         }
         $blog                   = new Blog();
@@ -133,12 +133,12 @@ class BlogController extends Controller
         {
             $extension           = $request->file('blog_cover_image')->getClientOriginalExtension();
             $fileNameToStoreBlog = 'blog' . '_' . time() . '.' . $extension;
-            $dir                 = storage_path('uploads/store_logo/');
+            $dir                 = storage_path('app/public/uploads/store_logo/');
             if(!file_exists($dir))
             {
                 mkdir($dir, 0777, true);
             }
-            $path = $request->file('blog_cover_image')->storeAs('uploads/store_logo/', $fileNameToStoreBlog);
+            $path = $request->file('blog_cover_image')->storeAs('app/public/uploads/store_logo/', $fileNameToStoreBlog);
 
         }
 

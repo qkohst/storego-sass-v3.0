@@ -46,16 +46,14 @@ class StoreController extends Controller
     public function __construct()
     {
 
-    
+
         $lang = session()->get('lang');
         \App::setLocale(isset($lang) ? $lang : 'en');
-     
     }
 
     public function index()
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
             $users  = User::where('created_by', '=', \Auth::user()->creatorId())->where('type', '=', 'Owner')->get();
             $stores = Store::get();
 
@@ -82,8 +80,7 @@ class StoreController extends Controller
      */
     public function store(Request $request)
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
             $settings = Utility::settings();
 
             $objUser = User::create(
@@ -147,19 +144,15 @@ To collect the order you need to show the receipt at the counter.
             );
 
             return redirect()->back()->with('success', __('Successfully Created!'));
-        }
-        else
-        {
-            if(\Auth::user()->type == 'Owner')
-            {
+        } else {
+            if (\Auth::user()->type == 'Owner') {
                 $user        = \Auth::user();
                 $total_store = $user->countStore();
                 $creator     = User::find($user->creatorId());
                 $plan        = Plan::find($creator->plan);
                 $settings    = Utility::settings();
 
-                if($total_store < $plan->max_stores || $plan->max_stores == -1)
-                {
+                if ($total_store < $plan->max_stores || $plan->max_stores == -1) {
                     $objStore                   = Store::create(
                         [
                             'created_by' => \Auth::user()->id,
@@ -207,15 +200,11 @@ To collect the order you need to show the receipt at the counter.
                     );
 
                     return redirect()->back()->with('success', __('Successfully Created!'));
-                }
-                else
-                {
+                } else {
                     return redirect()->back()->with('error', __('Your Store limit is over, Please upgrade plan'));
                 }
-
             }
         }
-
     }
 
     /**
@@ -239,8 +228,7 @@ To collect the order you need to show the receipt at the counter.
      */
     public function edit($id)
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
             $user       = User::find($id);
             $user_store = UserStore::where('user_id', $id)->first();
             $store      = Store::where('id', $user_store->store_id)->first();
@@ -259,19 +247,18 @@ To collect the order you need to show the receipt at the counter.
      */
     public function update(Request $request, $id)
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
             $store      = Store::find($id);
             $user_store = UserStore::where('store_id', $id)->first();
             $user       = User::where('id', $user_store->user_id)->first();
             $validator  = \Validator::make(
-                $request->all(), [
-                                   'name' => 'required|max:120',
-                                   'store_name' => 'required|max:120',
-                               ]
+                $request->all(),
+                [
+                    'name' => 'required|max:120',
+                    'store_name' => 'required|max:120',
+                ]
             );
-            if($validator->fails())
-            {
+            if ($validator->fails()) {
                 $messages = $validator->getMessageBag();
 
                 return redirect()->back()->with('error', $messages->first());
@@ -299,10 +286,8 @@ To collect the order you need to show the receipt at the counter.
      */
     public function destroy($id)
     {
-        if(\Auth::user()->type == 'super admin')
-        {
-            if(isset($id))
-            {
+        if (\Auth::user()->type == 'super admin') {
+            if (isset($id)) {
                 $user       = User::find($id);
                 $user_store = UserStore::where('user_id', $id)->first();
                 $store      = Store::where('id', $user_store->store_id)->first();
@@ -322,8 +307,7 @@ To collect the order you need to show the receipt at the counter.
                 Ratting::where('slug', $store->slug)->delete();
                 $products = Product::where('store_id', $store->id)->get();
                 $pro_img  = new ProductController();
-                foreach($products as $pro)
-                {
+                foreach ($products as $pro) {
                     $pro_img->fileDelete($pro->id);
                     ProductVariantOption::where('product_id', $pro->id)->delete();
                 }
@@ -336,78 +320,67 @@ To collect the order you need to show the receipt at the counter.
                 $user_store->delete();
 
                 return redirect()->back()->with(
-                    'success', __('Store Deleted!')
+                    'success',
+                    __('Store Deleted!')
                 );
             }
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
     }
 
     public function customDomain()
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
             $serverName = str_replace(
                 [
                     'http://',
                     'https://',
-                ], '', env('APP_URL')
+                ],
+                '',
+                env('APP_URL')
             );
             $serverIp   = gethostbyname($serverName);
 
-            if($serverIp == $_SERVER['SERVER_ADDR'])
-            {
+            if ($serverIp == $_SERVER['SERVER_ADDR']) {
                 $serverIp;
-            }
-            else
-            {
+            } else {
                 $serverIp = request()->server('SERVER_ADDR');
             }
             $users  = User::where('created_by', '=', \Auth::user()->creatorId())->where('type', '=', 'owner')->get();
             $stores = Store::where('enable_domain', 'on')->get();
 
             return view('admin_store.custom_domain', compact('users', 'stores', 'serverIp'));
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('permission Denied'));
         }
-
     }
 
     public function subDomain()
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
             $serverName = str_replace(
                 [
                     'http://',
                     'https://',
-                ], '', env('APP_URL')
+                ],
+                '',
+                env('APP_URL')
             );
             $serverIp   = gethostbyname($serverName);
 
-            if($serverIp != $serverName)
-            {
+            if ($serverIp != $serverName) {
                 $serverIp;
-            }
-            else
-            {
+            } else {
                 $serverIp = request()->server('SERVER_ADDR');
             }
             $users  = User::where('created_by', '=', \Auth::user()->creatorId())->where('type', '=', 'owner')->get();
             $stores = Store::where('enable_subdomain', 'on')->get();
 
             return view('admin_store.subdomain', compact('users', 'stores', 'serverIp'));
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('permission Denied'));
         }
-
     }
 
     public function ownerstoredestroy($id)
@@ -416,8 +389,7 @@ To collect the order you need to show the receipt at the counter.
         $store       = Store::find($id);
         $user_stores = UserStore::where('user_id', $user->id)->count();
 
-        if($user_stores > 1)
-        {
+        if ($user_stores > 1) {
             UserStore::where('store_id', $store->id)->delete();
             PageOption::where('store_id', $store->id)->delete();
             Order::where('user_id', $store->id)->delete();
@@ -433,8 +405,7 @@ To collect the order you need to show the receipt at the counter.
             Ratting::where('slug', $store->slug)->delete();
             $products = Product::where('store_id', $store->id)->get();
             $pro_img  = new ProductController();
-            foreach($products as $pro)
-            {
+            foreach ($products as $pro) {
                 $pro_img->fileDelete($pro->id);
                 ProductVariantOption::where('product_id', $pro->id)->delete();
             }
@@ -449,83 +420,72 @@ To collect the order you need to show the receipt at the counter.
             $user->save();
 
             return redirect()->route('dashboard');
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('You have only one store'));
         }
-
-
     }
 
     public function savestoresetting(Request $request, $id)
     {
 
         $validator = \Validator::make(
-            $request->all(), [
-                               'name' => 'required|max:120',
-                               'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-                               'logo' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                               'invoice_logo' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                           ]
+            $request->all(),
+            [
+                'name' => 'required|max:120',
+                'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'logo' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                'invoice_logo' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+            ]
         );
-        if($request->enable_domain == 'on')
-        {
+        if ($request->enable_domain == 'on') {
             $validator = \Validator::make(
-                $request->all(), [
-                                   'domains' => 'required',
-                               ]
+                $request->all(),
+                [
+                    'domains' => 'required',
+                ]
             );
         }
-        if($request->enable_domain == 'enable_subdomain')
-        {
+        if ($request->enable_domain == 'enable_subdomain') {
             $validator = \Validator::make(
-                $request->all(), [
-                                   'subdomain' => 'required',
-                               ]
+                $request->all(),
+                [
+                    'subdomain' => 'required',
+                ]
             );
         }
-        if($validator->fails())
-        {
+        if ($validator->fails()) {
             $messages = $validator->getMessageBag();
 
             return redirect()->back()->with('error', $messages->first());
         }
-        if(!empty($request->logo))
-        {
+        if (!empty($request->logo)) {
             $filenameWithExt = $request->file('logo')->getClientOriginalName();
             $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
             $extension       = $request->file('logo')->getClientOriginalExtension();
             $fileNameToStore = $filename . '_' . time() . '.' . $extension;
-            $dir             = storage_path('uploads/store_logo/');
-            if(!file_exists($dir))
-            {
+            $dir             = storage_path('app/public/uploads/store_logo/');
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
-            $path = $request->file('logo')->storeAs('uploads/store_logo/', $fileNameToStore);
-
+            $path = $request->file('logo')->storeAs('app/public/uploads/store_logo/', $fileNameToStore);
         }
-        if(!empty($request->invoice_logo))
-        {
+        if (!empty($request->invoice_logo)) {
             $extension              = $request->file('invoice_logo')->getClientOriginalExtension();
             $fileNameToStoreInvoice = 'invoice_logo' . '_' . $id . '.' . $extension;
-            $dir                    = storage_path('uploads/store_logo/');
-            if(!file_exists($dir))
-            {
+            $dir                    = storage_path('app/public/uploads/store_logo/');
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
-            $path = $request->file('invoice_logo')->storeAs('uploads/store_logo/', $fileNameToStoreInvoice);
+            $path = $request->file('invoice_logo')->storeAs('app/public/uploads/store_logo/', $fileNameToStoreInvoice);
         }
 
-        if($request->enable_domain == 'enable_domain')
-        {
+        if ($request->enable_domain == 'enable_domain') {
             // Remove the http://, www., and slash(/) from the URL
             $input = $request->domains;
             // If URI is like, eg. www.way2tutorial.com/
             $input = trim($input, '/');
             // If not have http:// or https:// then prepend it
-            if(!preg_match('#^http(s)?://#', $input))
-            {
+            if (!preg_match('#^http(s)?://#', $input)) {
                 $input = 'http://' . $input;
             }
 
@@ -534,16 +494,14 @@ To collect the order you need to show the receipt at the counter.
             $domain_name = preg_replace('/^www\./', '', $urlParts['host']);
             // Output way2tutorial.com
         }
-        if($request->enable_domain == 'enable_subdomain')
-        {
+        if ($request->enable_domain == 'enable_subdomain') {
             // Remove the http://, www., and slash(/) from the URL
             $input = env('APP_URL');
 
             // If URI is like, eg. www.way2tutorial.com/
             $input = trim($input, '/');
             // If not have http:// or https:// then prepend it
-            if(!preg_match('#^http(s)?://#', $input))
-            {
+            if (!preg_match('#^http(s)?://#', $input)) {
                 $input = 'http://' . $input;
             }
 
@@ -556,16 +514,14 @@ To collect the order you need to show the receipt at the counter.
         }
 
         $store = Store::find($id);
-        if($store->name != $request->name)
-        {
+        if ($store->name != $request->name) {
             $data          = ['name' => $request->name];
             $slug          = Store::create($data);
             $store['slug'] = $slug->slug;
         }
         $store['name']  = $request->name;
         $store['email'] = $request->email;
-        if($request->enable_domain == 'enable_domain')
-        {
+        if ($request->enable_domain == 'enable_domain') {
             $store['domains'] = $domain_name;
         }
 
@@ -573,8 +529,7 @@ To collect the order you need to show the receipt at the counter.
         $store['enable_domain']    = ($request->enable_domain == 'enable_domain') ? 'on' : 'off';
         $store['enable_subdomain'] = ($request->enable_domain == 'enable_subdomain') ? 'on' : 'off';
 
-        if($request->enable_domain == 'enable_subdomain')
-        {
+        if ($request->enable_domain == 'enable_subdomain') {
             $store['subdomain'] = $subdomain_name;
         }
         $store['tagline']         = $request->tagline;
@@ -593,12 +548,10 @@ To collect the order you need to show the receipt at the counter.
         $store['metakeyword']     = $request->metakeyword;
         $store['metadesc']        = $request->metadesc;
 
-        if(!empty($fileNameToStore))
-        {
+        if (!empty($fileNameToStore)) {
             $store['logo'] = $fileNameToStore;
         }
-        if(!empty($fileNameToStoreInvoice))
-        {
+        if (!empty($fileNameToStoreInvoice)) {
             $store['invoice_logo'] = $fileNameToStoreInvoice;
         }
         $store['created_by'] = \Auth::user()->creatorId();
@@ -611,10 +564,8 @@ To collect the order you need to show the receipt at the counter.
     {
 
         $store = Store::where('slug', $slug)->first();
-        if(!empty($store))
-        {
-            if(!Auth::check())
-            {
+        if (!empty($store)) {
+            if (!Auth::check()) {
                 visitor()->visit($slug);
             }
 
@@ -626,17 +577,13 @@ To collect the order you need to show the receipt at the counter.
             $storethemesetting = \App\Models\Utility::demoStoreThemeSetting($store->id, $store->theme_dir);
             $topRatedProducts  = Ratting::select(DB::raw('*,(SUM(ratting) / COUNT(product_id)) as avg_ratting'))->groupBy('product_id')->orderBy('avg_ratting', 'DESC')->where('slug', $slug);
 
-            if($store->theme_dir == 'theme4')
-            {
+            if ($store->theme_dir == 'theme4') {
                 $topRatedProducts = $topRatedProducts->limit(3)->get();
-            }
-            else
-            {
+            } else {
                 $topRatedProducts = $topRatedProducts->limit(4)->get();
             }
 
-            if(empty($store))
-            {
+            if (empty($store)) {
                 return redirect()->back()->with('error', __('Store not available'));
             }
             session(['slug' => $slug]);
@@ -649,57 +596,44 @@ To collect the order you need to show the receipt at the counter.
             $products      = [];
             $product_count = [];
 
-            foreach($categories as $id => $category)
-            {
+            foreach ($categories as $id => $category) {
                 $product = Product::where('store_id', $store->id);
-                if($id != 0)
-                {
+                if ($id != 0) {
                     $product->whereRaw('FIND_IN_SET("' . $id . '", product_categorie)');
                 }
                 $product = $product->get();
-                if($id != 0)
-                {
+                if ($id != 0) {
                     $product_count[] = count($product);
                 }
                 $products[$category] = $product;
             }
 
             $total_item = 0;
-            if(isset($cart['products']))
-            {
-                if(isset($cart) && !empty($cart['products']))
-                {
+            if (isset($cart['products'])) {
+                if (isset($cart) && !empty($cart['products'])) {
                     $total_item = count($cart['products']);
-                }
-                else
-                {
+                } else {
                     $total_item = 0;
                 }
             }
-            if(isset($cart['wishlist']))
-            {
+            if (isset($cart['wishlist'])) {
                 $wishlist = $cart['wishlist'];
-            }
-            else
-            {
+            } else {
                 $wishlist = [];
             }
             $theme3_product_image = null;
             $theme3_product       = Product::where('store_id', $store->id)->orderBy('id', 'DESC')->first();
-            if(!empty($theme3_product))
-            {
+            if (!empty($theme3_product)) {
                 $theme3_product_image = Product_images::where('product_id', $theme3_product->id)->limit(2)->get();
             }
             $blogs                 = Blog::where('store_id', $store->id)->orderby('id', 'DESC')->limit(3)->get();
             $theme3_product_random = Product::where('store_id', $store->id)->inRandomOrder()->first();
 
-            $lang=$store->lang;
-           
-           
+            $lang = $store->lang;
+
+
             return view('storefront.' . $store->theme_dir . '.index', compact('theme3_product_random', 'blogs', 'theme3_product_image', 'theme3_product', 'wishlist', 'products', 'settings', 'store', 'categories', 'total_item', 'page_slug_urls', 'blog', 'storethemesetting', 'pro_categories', 'topRatedProducts', 'product_count'));
-        }
-        else
-        {
+        } else {
             return redirect('/');
         }
     }
@@ -717,8 +651,7 @@ To collect the order you need to show the receipt at the counter.
 
         $topRatedProducts = Ratting::where('slug', $store->slug)->orderBy('ratting', 'DESC')->limit(4)->get();
 
-        if(empty($store))
-        {
+        if (empty($store)) {
             return redirect()->back()->with('error', __('Store not available'));
         }
         session(['slug' => $slug]);
@@ -729,11 +662,9 @@ To collect the order you need to show the receipt at the counter.
         $categories->prepend('Start shopping', 0);
         $products      = [];
         $product_count = [];
-        foreach($categories as $id => $category)
-        {
+        foreach ($categories as $id => $category) {
             $product = Product::where('store_id', $store->id);
-            if($id != 0)
-            {
+            if ($id != 0) {
                 $product->whereRaw('FIND_IN_SET("' . $id . '", product_categorie)');
             }
             $product       = $product->get();
@@ -741,38 +672,28 @@ To collect the order you need to show the receipt at the counter.
 
             $products[$category] = $product;
 
-            if(!empty($request->search_data))
-            {
+            if (!empty($request->search_data)) {
                 $product                    = Product::where('store_id', $store->id)->where('name', 'like', '%' . $request->search_data . '%')->get();
                 $products['Start shopping'] = $product;
             }
-
         }
 
         $total_item = 0;
-        if(isset($cart['products']))
-        {
-            if(isset($cart) && !empty($cart['products']))
-            {
+        if (isset($cart['products'])) {
+            if (isset($cart) && !empty($cart['products'])) {
                 $total_item = count($cart['products']);
-            }
-            else
-            {
+            } else {
                 $total_item = 0;
             }
         }
 
-        if(!$categorie_name)
-        {
+        if (!$categorie_name) {
             $categorie_name = 'Start shopping';
         }
 
-        if(isset($cart['wishlist']))
-        {
+        if (isset($cart['wishlist'])) {
             $wishlist = $cart['wishlist'];
-        }
-        else
-        {
+        } else {
             $wishlist = [];
         }
 
@@ -808,15 +729,12 @@ To collect the order you need to show the receipt at the counter.
         $socialblogs    = BlogSocial::where('store_id', $store->id)->first();
         $socialblogsarr = [];
 
-        if(!empty($socialblogs))
-        {
+        if (!empty($socialblogs)) {
             $arrSocialDatas = $socialblogs->toArray();
             unset($arrSocialDatas['id'], $arrSocialDatas['enable_social_button'], $arrSocialDatas['store_id'], $arrSocialDatas['created_by'], $arrSocialDatas['created_at'], $arrSocialDatas['updated_at']);
 
-            foreach($arrSocialDatas as $k => $v)
-            {
-                if($v == 'on')
-                {
+            foreach ($arrSocialDatas as $k => $v) {
+                if ($v == 'on') {
                     $newName = str_replace('enable_', '', $k);
                     array_push($socialblogsarr, strtolower($newName));
                 }
@@ -824,13 +742,9 @@ To collect the order you need to show the receipt at the counter.
         }
 
         $socialblogsarr = json_encode($socialblogsarr);
-        if(!empty($blogs))
-        {
+        if (!empty($blogs)) {
             return view('storefront.' . $store->theme_dir . '.store_blog_view', compact('store', 'blog', 'page_slug_urls', 'blogs', 'socialblogs', 'socialblogsarr'));
-
-        }
-        else
-        {
+        } else {
             return redirect()->route('store.slug', $store->slug);
         }
     }
@@ -845,18 +759,14 @@ To collect the order you need to show the receipt at the counter.
 
         $ratting    = Ratting::where('product_id', $id)->where('rating_view', 'on')->sum('ratting');
         $user_count = Ratting::where('product_id', $id)->where('rating_view', 'on')->count();
-        if($user_count > 0)
-        {
+        if ($user_count > 0) {
             $avg_rating = number_format($ratting / $user_count, 1);
-        }
-        else
-        {
+        } else {
             $avg_rating = number_format($ratting / 1, 1);
         }
 
         $store = Store::where('slug', $slug)->first();
-        if(empty($store))
-        {
+        if (empty($store)) {
             return redirect()->back()->with('error', __('Store not available'));
         }
 
@@ -867,24 +777,16 @@ To collect the order you need to show the receipt at the counter.
 
         $variant_item = 0;
         $total_item   = 0;
-        if(isset($cart['products']))
-        {
-            foreach($cart['products'] as $item)
-            {
-                if(isset($cart) && !empty($cart['products']))
-                {
-                    if(isset($item['variants']))
-                    {
+        if (isset($cart['products'])) {
+            foreach ($cart['products'] as $item) {
+                if (isset($cart) && !empty($cart['products'])) {
+                    if (isset($item['variants'])) {
                         $variant_item += count($item['variants']);
-                    }
-                    else
-                    {
+                    } else {
                         $product_item = count($cart['products']);
                         $total_item   = $variant_item + $product_item;
                     }
-                }
-                else
-                {
+                } else {
                     $total_item = 0;
                 }
             }
@@ -893,12 +795,9 @@ To collect the order you need to show the receipt at the counter.
         $variant_name          = json_decode($products->variants_json);
         $product_variant_names = $variant_name;
 
-        if(isset($cart['wishlist']))
-        {
+        if (isset($cart['wishlist'])) {
             $wishlist = $cart['wishlist'];
-        }
-        else
-        {
+        } else {
             $wishlist = [];
         }
 
@@ -911,38 +810,27 @@ To collect the order you need to show the receipt at the counter.
         $page_slug_urls = PageOption::where('store_id', $store->id)->get();
         $blog           = Blog::where('store_id', $store->id)->first();
 
-        if(empty($store))
-        {
+        if (empty($store)) {
             return redirect()->back()->with('error', __('Store not available'));
         }
         $cart = session()->get($slug);
 
-        if(!empty($cart))
-        {
+        if (!empty($cart)) {
             $products = $cart;
-        }
-        else
-        {
+        } else {
             $products = '';
         }
         $total_item = 0;
-        if(isset($cart['products']))
-        {
-            if(isset($cart) && !empty($cart['products']))
-            {
+        if (isset($cart['products'])) {
+            if (isset($cart) && !empty($cart['products'])) {
                 $total_item = count($cart['products']);
-            }
-            else
-            {
+            } else {
                 $total_item = 0;
             }
         }
-        if(isset($cart['wishlist']))
-        {
+        if (isset($cart['wishlist'])) {
             $wishlist = $cart['wishlist'];
-        }
-        else
-        {
+        } else {
             $wishlist = [];
         }
 
@@ -958,64 +846,44 @@ To collect the order you need to show the receipt at the counter.
         $page_slug_urls = PageOption::where('store_id', $store->id)->get();
         $blog           = Blog::where('store_id', $store->id)->first();
 
-        if(empty($store))
-        {
+        if (empty($store)) {
             return redirect()->back()->with('error', __('Store not available'));
         }
         $cart = session()->get($slug);
-        if(!empty($cart))
-        {
+        if (!empty($cart)) {
             $products = $cart['products'];
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('Please add to product into cart'));
         }
-        if(!empty($cart['customer']))
-        {
+        if (!empty($cart['customer'])) {
             $cust_details = $cart['customer'];
-        }
-        else
-        {
+        } else {
             $cust_details = '';
         }
         $tax_name  = [];
         $tax_price = [];
         $i         = 0;
 
-        if(!empty($products))
-        {
-            foreach($products as $product)
-            {
-                if($product['variant_id'] != 0)
-                {
-                    foreach($product['tax'] as $key => $taxs)
-                    {
-                        if(!in_array($taxs['tax_name'], $tax_name))
-                        {
+        if (!empty($products)) {
+            foreach ($products as $product) {
+                if ($product['variant_id'] != 0) {
+                    foreach ($product['tax'] as $key => $taxs) {
+                        if (!in_array($taxs['tax_name'], $tax_name)) {
                             $tax_name[]  = $taxs['tax_name'];
                             $price       = $product['variant_price'] * $product['quantity'] * $taxs['tax'] / 100;
                             $tax_price[] = $price;
-                        }
-                        else
-                        {
+                        } else {
                             $price                                                 = $product['variant_price'] * $product['quantity'] * $taxs['tax'] / 100;
                             $tax_price[array_search($taxs['tax_name'], $tax_name)] += $price;
                         }
                     }
-                }
-                else
-                {
-                    foreach($product['tax'] as $key => $taxs)
-                    {
-                        if(!in_array($taxs['tax_name'], $tax_name))
-                        {
+                } else {
+                    foreach ($product['tax'] as $key => $taxs) {
+                        if (!in_array($taxs['tax_name'], $tax_name)) {
                             $tax_name[]  = $taxs['tax_name'];
                             $price       = $product['price'] * $product['quantity'] * $taxs['tax'] / 100;
                             $tax_price[] = $price;
-                        }
-                        else
-                        {
+                        } else {
                             $price                                                 = $product['price'] * $product['quantity'] * $taxs['tax'] / 100;
                             $tax_price[array_search($taxs['tax_name'], $tax_name)] += $price;
                         }
@@ -1029,9 +897,7 @@ To collect the order you need to show the receipt at the counter.
             $store_payment_setting = Utility::getPaymentSetting($store->id);
 
             return view('storefront.' . $store->theme_dir . '.shipping', compact('store_payment_setting', 'products', 'store', 'taxArr', 'total_item', 'cust_details', 'locations', 'shippings', 'page_slug_urls', 'blog'));
-        }
-        else
-        {
+        } else {
 
             return redirect()->back()->with('error', __('Please add to product into cart.'));
         }
@@ -1058,22 +924,15 @@ To collect the order you need to show the receipt at the counter.
         $shipping_price  = Utility::priceFormat($shippings->price);
         $pro_total_price = str_replace(' ', '', str_replace(',', '', str_replace($store->currency, '', $request->pro_total_price)));
         $total_price     = $shippings->price + $pro_total_price;
-        if(!empty($request->coupon))
-        {
+        if (!empty($request->coupon)) {
             $coupons = ProductCoupon::where('code', strtoupper($request->coupon))->first();
-            if(!empty($coupons))
-            {
-                if($coupons->enable_flat == 'on')
-                {
+            if (!empty($coupons)) {
+                if ($coupons->enable_flat == 'on') {
                     $discount_value = $coupons->flat_discount;
-                }
-                else
-                {
+                } else {
                     $discount_value = ($pro_total_price / 100) * $coupons->discount;
                 }
-            }
-            else
-            {
+            } else {
                 $discount_value = 0;
             }
             $total_price = $total_price - $discount_value;
@@ -1095,114 +954,80 @@ To collect the order you need to show the receipt at the counter.
         $order = Order::where('user_id', $store->id)->orderBy('id', 'desc')->first();
         $blog  = Blog::where('store_id', $store->id)->count();
 
-        if(\Auth::check())
-        {
+        if (\Auth::check()) {
             $store_payments = Utility::getPaymentSetting();
-        }
-        else
-        {
+        } else {
             $store_payments = Utility::getPaymentSetting($store->id);
         }
 
         $page_slug_urls = PageOption::where('store_id', $store->id)->get();
 
-        if(empty($store))
-        {
+        if (empty($store)) {
             return redirect()->back()->with('error', __('Store not available'));
         }
         $cart = session()->get($slug);
-        if(!empty($cart))
-        {
+        if (!empty($cart)) {
             $products = $cart['products'];
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('Please add to product into cart'));
         }
 
-        if(!empty($cart['customer']))
-        {
+        if (!empty($cart['customer'])) {
             $cust_details = $cart['customer'];
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('Please add your information'));
         }
         $shippings = Shipping::where('store_id', $store->id)->get();
 
-        if($store->enable_shipping == 'on' && count($shippings) > 0)
-        {
-            if(!empty($cart['shipping']))
-            {
+        if ($store->enable_shipping == 'on' && count($shippings) > 0) {
+            if (!empty($cart['shipping'])) {
                 $shipping         = $cart['shipping'];
                 $shipping_details = Shipping::where('store_id', $store->id)->where('id', $shipping['shipping_id'])->first();
                 $shipping_price   = floor($shipping_details->price);
-            }
-            else
-            {
+            } else {
                 return redirect()->back()->with('error', __('Please Select Shipping Location'));
             }
-        }
-        else
-        {
+        } else {
             $shipping_price = 0;
         }
 
-        if(!empty($cart['coupon']))
-        {
+        if (!empty($cart['coupon'])) {
             $discount_price = $cart['coupon']['discount_price'];
             $coupon_price   = str_replace('-' . $store->currency, '', $cart['coupon']['discount_price']);
             $coupon_id      = $cart['coupon']['data_id'];
-        }
-        else
-        {
+        } else {
             $discount_price = Utility::priceFormat(0);
             $coupon_price   = 0;
             $coupon_id      = 0;
-
         }
 
         $store     = Store::where('slug', $slug)->first();
         $tax_name  = [];
         $tax_price = [];
         $i         = 0;
-        if(!empty($products))
-        {
-            if(!empty($cust_details))
-            {
-                foreach($products as $product)
-                {
-                    if($product['variant_id'] != 0)
-                    {
-                        foreach($product['tax'] as $key => $taxs)
-                        {
+        if (!empty($products)) {
+            if (!empty($cust_details)) {
+                foreach ($products as $product) {
+                    if ($product['variant_id'] != 0) {
+                        foreach ($product['tax'] as $key => $taxs) {
 
-                            if(!in_array($taxs['tax_name'], $tax_name))
-                            {
+                            if (!in_array($taxs['tax_name'], $tax_name)) {
                                 $tax_name[]  = $taxs['tax_name'];
                                 $price       = $product['variant_price'] * $product['quantity'] * $taxs['tax'] / 100;
                                 $tax_price[] = $price;
-                            }
-                            else
-                            {
+                            } else {
                                 $price                                                 = $product['variant_price'] * $product['quantity'] * $taxs['tax'] / 100;
                                 $tax_price[array_search($taxs['tax_name'], $tax_name)] += $price;
                             }
                         }
-                    }
-                    else
-                    {
+                    } else {
 
-                        foreach($product['tax'] as $key => $taxs)
-                        {
-                            if(!in_array($taxs['tax_name'], $tax_name))
-                            {
+                        foreach ($product['tax'] as $key => $taxs) {
+                            if (!in_array($taxs['tax_name'], $tax_name)) {
                                 $tax_name[]  = $taxs['tax_name'];
                                 $price       = $product['price'] * $product['quantity'] * $taxs['tax'] / 100;
                                 $tax_price[] = $price;
-                            }
-                            else
-                            {
+                            } else {
                                 $price                                                 = $product['price'] * $product['quantity'] * $taxs['tax'] / 100;
                                 $tax_price[array_search($taxs['tax_name'], $tax_name)] += $price;
                             }
@@ -1216,14 +1041,10 @@ To collect the order you need to show the receipt at the counter.
                 $taxArr['rate'] = $tax_price;
 
                 return view('storefront.' . $store->theme_dir . '.payment', compact('coupon_id', 'discount_price', 'coupon_price', 'products', 'order', 'cust_details', 'store', 'taxArr', 'total_item', 'encode_product', 'shipping_price', 'page_slug_urls', 'store_payments', 'blog', 'cart'));
-            }
-            else
-            {
+            } else {
                 return redirect()->back()->with('error', __('Please fill your details.'));
             }
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('Please add to product into cart.'));
         }
     }
@@ -1233,12 +1054,9 @@ To collect the order you need to show the receipt at the counter.
         $store = Store::where('slug', $slug)->first();
         $cart  = session()->get($slug);
 
-        if(!empty($cart))
-        {
+        if (!empty($cart)) {
             $products = $cart['products'];
-        }
-        else
-        {
+        } else {
             return response()->json(
                 [
                     'status' => 'error',
@@ -1247,14 +1065,11 @@ To collect the order you need to show the receipt at the counter.
             );
         }
         $shipping_price = 0;
-        if($store->enable_shipping == 'on')
-        {
-            if(!empty($cart['shipping']))
-            {
+        if ($store->enable_shipping == 'on') {
+            if (!empty($cart['shipping'])) {
                 $shipping         = $cart['shipping'];
                 $shipping_details = Shipping::where('store_id', $store->id)->where('id', $shipping['shipping_id'])->first();
-                if(!empty($shipping_details->price))
-                {
+                if (!empty($shipping_details->price)) {
                     $shipping_price = $shipping_details->price;
                 }
             }
@@ -1267,16 +1082,13 @@ To collect the order you need to show the receipt at the counter.
 
         $lists     = [];
         $total_tax = 0;
-        foreach($products as $item)
-        {
+        foreach ($products as $item) {
             $pro_data = Product::where('id', $item['id'])->first();
 
-            if($item['variant_id'] == 0)
-            {
+            if ($item['variant_id'] == 0) {
                 $pro_qty[] = $item['quantity'] . ' x ' . $item['product_name'];
                 $total_tax = 0;
-                foreach($item['tax'] as $tax)
-                {
+                foreach ($item['tax'] as $tax) {
                     $sub_tax   = ($item['price'] * $item['quantity'] * $tax['tax']) / 100;
                     $total_tax += $sub_tax;
                 }
@@ -1287,13 +1099,10 @@ To collect the order you need to show the receipt at the counter.
                     'item_tax' => $total_tax,
                     'item_total' => $item['price'] * $item['quantity'],
                 );
-            }
-            elseif($item['variant_id'] != 0)
-            {
+            } elseif ($item['variant_id'] != 0) {
                 $pro_data  = Product::where('id', $item['id'])->first();
                 $pro_qty[] = $item['quantity'] . ' x ' . $item['product_name'] . ' - ' . $item['variant_name'];
-                foreach($item['tax'] as $tax)
-                {
+                foreach ($item['tax'] as $tax) {
                     $sub_tax   = ($item['variant_price'] * $item['quantity'] * $tax['tax']) / 100;
                     $total_tax += $sub_tax;
                 }
@@ -1314,8 +1123,7 @@ To collect the order you need to show the receipt at the counter.
         $sub_total     = 0;
         $total_tax     = 0;
 
-        foreach($lists as $l)
-        {
+        foreach ($lists as $l) {
             $arrList = [
                 'sku' => $l['sku'],
                 'quantity' => $l['quantity'],
@@ -1324,8 +1132,7 @@ To collect the order you need to show the receipt at the counter.
                 'item_total' => Utility::priceFormat($l['item_total']),
             ];
 
-            if(isset($l['variant_name']) && !empty($l['variant_name']))
-            {
+            if (isset($l['variant_name']) && !empty($l['variant_name'])) {
                 $arrList['variant_name'] = $l['variant_name'];
             }
 
@@ -1360,20 +1167,17 @@ To collect the order you need to show the receipt at the counter.
             'final_total' => $total_price,
         ];
 
-        if(isset($request->coupon_id) && !empty($request->coupon_id))
-        {
+        if (isset($request->coupon_id) && !empty($request->coupon_id)) {
             $arr['discount_amount'] = !empty($request->dicount_price) ? $request->dicount_price : '0';
         }
 
-        if(isset($request->finalprice) && !empty($request->finalprice))
-        {
+        if (isset($request->finalprice) && !empty($request->finalprice)) {
             $arr['final_total'] = $request->finalprice;
         }
 
         $resp = Utility::replaceVariable($store->content, $arr);
 
-        if($request['data']['type'] == 'telegram')
-        {
+        if ($request['data']['type'] == 'telegram') {
             $msg = $resp;
 
             // Set your Bot ID and Chat ID.
@@ -1396,9 +1200,7 @@ To collect the order you need to show the receipt at the counter.
             $context = stream_context_create($options);
             $result  = file_get_contents($url, false, $context);
             $url     = $url;
-        }
-        else
-        {
+        } else {
             $url = 'https://api.whatsapp.com/send?phone=' . $store->whatsapp_number . '&text=' . urlencode($resp);
         }
 
@@ -1415,13 +1217,11 @@ To collect the order you need to show the receipt at the counter.
 
     public function addToCart(Request $request, $product_id, $slug, $variant_id = 0)
     {
-        if($request->ajax())
-        {
+        if ($request->ajax()) {
             $store   = Store::where('slug', $slug)->get();
             $variant = ProductVariantOption::find($variant_id);
 
-            if(empty($store))
-            {
+            if (empty($store)) {
                 return redirect()->back()->with('error', __('Store not available'));
             }
 
@@ -1429,17 +1229,13 @@ To collect the order you need to show the receipt at the counter.
             $cart    = session()->get($slug);
 
             $quantity = $product->quantity;
-            if($variant_id > 0)
-            {
+            if ($variant_id > 0) {
                 $quantity = $variant->quantity;
             }
 
-            if(!empty($product->is_cover))
-            {
+            if (!empty($product->is_cover)) {
                 $pro_img = $product->is_cover;
-            }
-            else
-            {
+            } else {
                 $pro_img = 'default.jpg';
             }
 
@@ -1447,8 +1243,7 @@ To collect the order you need to show the receipt at the counter.
             $i               = 0;
 
             //            if(!$product && $quantity == 0)
-            if($quantity == 0)
-            {
+            if ($quantity == 0) {
                 return response()->json(
                     [
                         'code' => 404,
@@ -1467,12 +1262,9 @@ To collect the order you need to show the receipt at the counter.
             $itemTaxes  = [];
             $producttax = 0;
 
-            if(!empty($taxes))
-            {
-                foreach($taxes as $tax)
-                {
-                    if(!empty($tax))
-                    {
+            if (!empty($taxes)) {
+                foreach ($taxes as $tax) {
+                    if (!empty($tax)) {
                         $producttax          = Utility::taxRate($tax->rate, $product->price, 1);
                         $itemTax['tax_name'] = $tax->name;
                         $itemTax['tax']      = $tax->rate;
@@ -1483,8 +1275,7 @@ To collect the order you need to show the receipt at the counter.
 
             $subtotal = Utility::priceFormat($productprice + $producttax);
 
-            if($variant_id > 0)
-            {
+            if ($variant_id > 0) {
                 $variant_itemTaxes       = [];
                 $variant_name            = $variant->name;
                 $variant_price           = $variant->price;
@@ -1493,12 +1284,9 @@ To collect the order you need to show the receipt at the counter.
                 $variant_taxes      = Utility::tax($product->product_tax);
                 $variant_producttax = 0;
 
-                if(!empty($variant_taxes))
-                {
-                    foreach($variant_taxes as $variant_tax)
-                    {
-                        if(!empty($variant_tax))
-                        {
+                if (!empty($variant_taxes)) {
+                    foreach ($variant_taxes as $variant_tax) {
+                        if (!empty($variant_tax)) {
                             $variant_producttax  = Utility::taxRate($variant_tax->rate, $variant_price, 1);
                             $itemTax['tax_name'] = $variant_tax->name;
                             $itemTax['tax']      = $variant_tax->rate;
@@ -1511,14 +1299,12 @@ To collect the order you need to show the receipt at the counter.
 
             $time = time();
             // if cart is empty then this the first product
-            if(!$cart || !isset($cart['products']))
-            {
-                if($variant_id > 0)
-                {
+            if (!$cart || !isset($cart['products'])) {
+                if ($variant_id > 0) {
                     $cart['products'][$time] = [
                         "product_id" => $product->id,
                         "product_name" => $productname,
-                        "image" => Storage::url('uploads/is_cover_image/' . $pro_img),
+                        "image" => Storage::url('app/public/uploads/is_cover_image/' . $pro_img),
                         "quantity" => 1,
                         "price" => $productprice,
                         "id" => $product_id,
@@ -1533,13 +1319,11 @@ To collect the order you need to show the receipt at the counter.
                         "originalvariantquantity" => $originalvariantquantity,
                         'variant_id' => $variant_id,
                     ];
-                }
-                else if($variant_id <= 0)
-                {
+                } else if ($variant_id <= 0) {
                     $cart['products'][$time] = [
                         "product_id" => $product->id,
                         "product_name" => $productname,
-                        "image" => Storage::url('uploads/is_cover_image/' . $pro_img),
+                        "image" => Storage::url('app/public/uploads/is_cover_image/' . $pro_img),
                         "quantity" => 1,
                         "price" => $productprice,
                         "id" => $product_id,
@@ -1565,26 +1349,20 @@ To collect the order you need to show the receipt at the counter.
             }
 
             // if cart not empty then check if this product exist then increment quantity
-            if($variant_id > 0)
-            {
+            if ($variant_id > 0) {
                 $key = false;
-                foreach($cart['products'] as $k => $value)
-                {
-                    if($variant_id == $value['variant_id'])
-                    {
+                foreach ($cart['products'] as $k => $value) {
+                    if ($variant_id == $value['variant_id']) {
                         $key = $k;
                     }
                 }
 
-                if($key !== false && isset($cart['products'][$key]['variant_id']) && $cart['products'][$key]['variant_id'] != 0)
-                {
-                    if(isset($cart['products'][$key]))
-                    {
+                if ($key !== false && isset($cart['products'][$key]['variant_id']) && $cart['products'][$key]['variant_id'] != 0) {
+                    if (isset($cart['products'][$key])) {
                         $cart['products'][$key]['quantity']         = $cart['products'][$key]['quantity'] + 1;
                         $cart['products'][$key]['variant_subtotal'] = $cart['products'][$key]['variant_price'] * $cart['products'][$key]['quantity'];
 
-                        if($originalvariantquantity < $cart['products'][$key]['quantity'])
-                        {
+                        if ($originalvariantquantity < $cart['products'][$key]['quantity']) {
                             return response()->json(
                                 [
                                     'code' => 404,
@@ -1607,27 +1385,20 @@ To collect the order you need to show the receipt at the counter.
                         );
                     }
                 }
-            }
-            else if($variant_id <= 0)
-            {
+            } else if ($variant_id <= 0) {
                 $key = false;
 
-                foreach($cart['products'] as $k => $value)
-                {
-                    if($product_id == $value['product_id'])
-                    {
+                foreach ($cart['products'] as $k => $value) {
+                    if ($product_id == $value['product_id']) {
                         $key = $k;
                     }
                 }
 
-                if($key !== false)
-                {
-                    if(isset($cart['products'][$key]))
-                    {
+                if ($key !== false) {
+                    if (isset($cart['products'][$key])) {
                         $cart['products'][$key]['quantity'] = $cart['products'][$key]['quantity'] + 1;
                         $cart['products'][$key]['subtotal'] = $cart['products'][$key]['price'] * $cart['products'][$key]['quantity'];
-                        if($originalquantity < $cart['products'][$key]['quantity'])
-                        {
+                        if ($originalquantity < $cart['products'][$key]['quantity']) {
                             return response()->json(
                                 [
                                     'code' => 404,
@@ -1653,12 +1424,11 @@ To collect the order you need to show the receipt at the counter.
             }
 
             // if item not exist in cart then add to cart with quantity = 1
-            if($variant_id > 0)
-            {
+            if ($variant_id > 0) {
                 $cart['products'][$time] = [
                     "product_id" => $product->id,
                     "product_name" => $productname,
-                    "image" => Storage::url('uploads/is_cover_image/' . $pro_img),
+                    "image" => Storage::url('app/public/uploads/is_cover_image/' . $pro_img),
                     "quantity" => 1,
                     "price" => $productprice,
                     "id" => $product_id,
@@ -1673,13 +1443,11 @@ To collect the order you need to show the receipt at the counter.
                     "originalvariantquantity" => $originalvariantquantity,
                     'variant_id' => $variant_id,
                 ];
-            }
-            else if($variant_id <= 0)
-            {
+            } else if ($variant_id <= 0) {
                 $cart['products'][$time] = [
                     "product_id" => $product->id,
                     "product_name" => $productname,
-                    "image" => Storage::url('uploads/is_cover_image/' . $pro_img),
+                    "image" => Storage::url('app/public/uploads/is_cover_image/' . $pro_img),
                     "quantity" => 1,
                     "price" => $productprice,
                     "id" => $product_id,
@@ -1708,8 +1476,7 @@ To collect the order you need to show the receipt at the counter.
     public function productqty(Request $request, $product_id, $slug, $key = 0)
     {
         $cart = session()->get($slug);
-        if($cart['products'][$key]['variant_id'] > 0 && $cart['products'][$key]['originalvariantquantity'] < $request->product_qty)
-        {
+        if ($cart['products'][$key]['variant_id'] > 0 && $cart['products'][$key]['originalvariantquantity'] < $request->product_qty) {
             return response()->json(
                 [
                     'code' => 404,
@@ -1717,9 +1484,7 @@ To collect the order you need to show the receipt at the counter.
                     'error' => __('You can only purchese max') . ' ' . $cart['products'][$key]['originalvariantquantity'] . ' ' . __('product!'),
                 ]
             );
-        }
-        else if($cart['products'][$key]['originalquantity'] < $request->product_qty && $cart['products'][$key]['variant_id'] == 0)
-        {
+        } else if ($cart['products'][$key]['originalquantity'] < $request->product_qty && $cart['products'][$key]['variant_id'] == 0) {
             return response()->json(
                 [
                     'code' => 404,
@@ -1728,27 +1493,21 @@ To collect the order you need to show the receipt at the counter.
                 ]
             );
         }
-        if(isset($cart['products'][$key]))
-        {
+        if (isset($cart['products'][$key])) {
             $cart['products'][$key]['quantity'] = $request->product_qty;
             $cart['products'][$key]['id']       = $product_id;
 
             $subtotal = $cart['products'][$key]["price"] * $cart['products'][$key]["quantity"];
 
             $protax = $cart['products'][$key]["tax"];
-            if($protax != 0)
-            {
+            if ($protax != 0) {
                 $taxs = 0;
-                foreach($protax as $tax)
-                {
+                foreach ($protax as $tax) {
                     $taxs += ($subtotal * $tax['tax']) / 100;
                 }
-            }
-            else
-            {
+            } else {
                 $taxs = 0;
                 $taxs += ($subtotal * 0) / 100;
-
             }
             $cart['products'][$key]["subtotal"] = $subtotal + $taxs;
 
@@ -1763,7 +1522,6 @@ To collect the order you need to show the receipt at the counter.
                     'carttotal' => $cart['products'],
                 ]
             );
-
         }
     }
 
@@ -1771,17 +1529,12 @@ To collect the order you need to show the receipt at the counter.
     {
         $cart = session()->get($slug);
 
-        foreach($cart['products'] as $key => $product)
-        {
-            if(($variant_id > 0 && $cart['products'][$key]['variant_id'] == $variant_id))
-            {
+        foreach ($cart['products'] as $key => $product) {
+            if (($variant_id > 0 && $cart['products'][$key]['variant_id'] == $variant_id)) {
+                unset($cart['products'][$key]);
+            } else if ($cart['products'][$key]['product_id'] == $id && $variant_id == 0) {
                 unset($cart['products'][$key]);
             }
-            else if($cart['products'][$key]['product_id'] == $id && $variant_id == 0)
-            {
-                unset($cart['products'][$key]);
-            }
-
         }
 
         $cart['products'] = array_values($cart['products']);
@@ -1795,8 +1548,7 @@ To collect the order you need to show the receipt at the counter.
     {
         $store = Store::where('slug', $slug)->first();
 
-        if(empty($store))
-        {
+        if (empty($store)) {
             return redirect()->back()->with('error', __('Store not available'));
         }
 
@@ -1805,50 +1557,41 @@ To collect the order you need to show the receipt at the counter.
         $products = $cart['products'];
 
         $validator = \Validator::make(
-            $request->all(), [
-                               'name' => 'required|max:120',
-                               'last_name' => 'required|max:120',
-                           ]
+            $request->all(),
+            [
+                'name' => 'required|max:120',
+                'last_name' => 'required|max:120',
+            ]
         );
-        if($validator->fails())
-        {
+        if ($validator->fails()) {
             $messages = $validator->getMessageBag();
 
             return redirect()->back()->withInput()->with('error', $messages->first());
         }
         $shippings = Shipping::where('store_id', $store->id)->where('id', $request->shipping_id)->get();
 
-        if($store->enable_shipping == "on" && count($shippings) > 0)
-        {
-            if($request->location_id == 0 && empty($request->location_id))
-            {
+        if ($store->enable_shipping == "on" && count($shippings) > 0) {
+            if ($request->location_id == 0 && empty($request->location_id)) {
                 return redirect()->back()->withInput()->with('error', __('Please Select Location'));
             }
-            if(empty($request->shipping_id))
-            {
+            if (empty($request->shipping_id)) {
                 return redirect()->back()->withInput()->with('error', __('Please Select Shipping Method'));
             }
-        }
-        else
-        {
+        } else {
             $request->location_id = 0;
             $request->shipping_id = 0;
         }
 
-        if($request->location_id != 0 && !empty($request->location_id) && !empty($request->shipping_id))
-        {
+        if ($request->location_id != 0 && !empty($request->location_id) && !empty($request->shipping_id)) {
             $cart['shipping'] = [
                 'location_id' => $request->location_id,
                 'shipping_id' => $request->shipping_id,
             ];
         }
 
-        if(!empty($cart['customer']['id']))
-        {
+        if (!empty($cart['customer']['id'])) {
             $userdetail = UserDetail::where('id', $cart['customer']['id'])->where('store_id', $store->id)->first();
-        }
-        else
-        {
+        } else {
             $userdetail = new UserDetail();
         }
 
@@ -1905,7 +1648,6 @@ To collect the order you need to show the receipt at the counter.
         session()->put($slug, $cart);
 
         return redirect()->route('store-payment.payment', $slug);
-
     }
 
     public function complete($slug, $order_id)
@@ -1922,26 +1664,19 @@ To collect the order you need to show the receipt at the counter.
         $store = Store::where('slug', $slug)->first();
         $order = Order::where('id', $id)->first();
 
-        if(!empty($order->coupon_json))
-        {
+        if (!empty($order->coupon_json)) {
             $coupon = json_decode($order->coupon_json);
         }
-        if(!empty($order->discount_price))
-        {
+        if (!empty($order->discount_price)) {
             $discount_price = $order->discount_price;
-        }
-        else
-        {
+        } else {
             $discount_price = '';
         }
 
-        if(!empty($order->shipping_data))
-        {
+        if (!empty($order->shipping_data)) {
             $shipping_data = json_decode($order->shipping_data);
             $location_data = Location::where('id', $shipping_data->location_id)->first();
-        }
-        else
-        {
+        } else {
             $shipping_data = '';
             $location_data = '';
         }
@@ -1951,28 +1686,21 @@ To collect the order you need to show the receipt at the counter.
 
         $sub_total = 0;
 
-        if(!empty($order_products))
-        {
+        if (!empty($order_products)) {
             $grand_total    = 0;
             $discount_value = 0;
             $final_taxs     = 0;
             $total_taxs     = 0;
-            foreach($order_products as $product)
-            {
-                if(isset($product->variant_id) && $product->variant_id != 0)
-                {
+            foreach ($order_products as $product) {
+                if (isset($product->variant_id) && $product->variant_id != 0) {
                     $total_taxs = 0;
-                    if(!empty($product->tax))
-                    {
-                        foreach($product->tax as $tax)
-                        {
+                    if (!empty($product->tax)) {
+                        foreach ($product->tax as $tax) {
                             $sub_tax    = ($product->variant_price * $product->quantity * $tax->tax) / 100;
                             $total_taxs += $sub_tax;
                             $final_taxs += $sub_tax;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         $total_taxs = 0;
                     }
 
@@ -1981,22 +1709,15 @@ To collect the order you need to show the receipt at the counter.
 
                     $sub_total   += $subtotal1;
                     $grand_total += $totalprice;
-                }
-                else
-                {
-                    if(!empty($product->tax))
-                    {
+                } else {
+                    if (!empty($product->tax)) {
                         $total_taxs = 0;
-                        foreach($product->tax as $tax)
-                        {
+                        foreach ($product->tax as $tax) {
                             $sub_tax    = ($product->price * $product->quantity * $tax->tax) / 100;
                             $total_taxs += $sub_tax;
                             $final_taxs += $sub_tax;
-
                         }
-                    }
-                    else
-                    {
+                    } else {
                         $total_taxs = 0;
                     }
 
@@ -2005,18 +1726,13 @@ To collect the order you need to show the receipt at the counter.
                     $sub_total   += $subtotal1;
                     $grand_total += $totalprice;
                 }
-
             }
         }
 
-        if(!empty($coupon))
-        {
-            if($coupon->enable_flat == 'on')
-            {
+        if (!empty($coupon)) {
+            if ($coupon->enable_flat == 'on') {
                 $discount_value = $coupon->flat_discount;
-            }
-            else
-            {
+            } else {
                 $discount_value = ($grand_total / 100) * $coupon->discount;
             }
         }
@@ -2031,10 +1747,8 @@ To collect the order you need to show the receipt at the counter.
         $store = Store::where('slug', $slug)->first();
 
         $shipping = Shipping::where('store_id', $store->id)->first();
-        if(!empty($shipping) && $store->enable_shipping == 'on')
-        {
-            if($request->shipping_price == '0.00')
-            {
+        if (!empty($shipping) && $store->enable_shipping == 'on') {
+            if ($request->shipping_price == '0.00') {
                 return response()->json(
                     [
                         'status' => 'error',
@@ -2043,8 +1757,7 @@ To collect the order you need to show the receipt at the counter.
                 );
             }
         }
-        if(empty($store))
-        {
+        if (empty($store)) {
             return response()->json(
                 [
                     'status' => 'error',
@@ -2053,12 +1766,12 @@ To collect the order you need to show the receipt at the counter.
             );
         }
         $validator = \Validator::make(
-            $request->all(), [
-                               'wts_number' => 'required',
-                           ]
+            $request->all(),
+            [
+                'wts_number' => 'required',
+            ]
         );
-        if($validator->fails())
-        {
+        if ($validator->fails()) {
             return response()->json(
                 [
                     'status' => 'error',
@@ -2070,12 +1783,9 @@ To collect the order you need to show the receipt at the counter.
         $order_id     = $request['order_id'];
         $cart         = session()->get($slug);
         $cust_details = $cart['customer'];
-        if(!empty($request->coupon_id))
-        {
+        if (!empty($request->coupon_id)) {
             $coupon = ProductCoupon::where('id', $request->coupon_id)->first();
-        }
-        else
-        {
+        } else {
             $coupon = '';
         }
 
@@ -2083,42 +1793,32 @@ To collect the order you need to show the receipt at the counter.
         $product_id   = [];
         $tax_name     = [];
         $totalprice   = 0;
-        foreach($products as $key => $product)
-        {
-            if($product['variant_id'] == 0)
-            {
+        foreach ($products as $key => $product) {
+            if ($product['variant_id'] == 0) {
                 $new_qty                = $product['originalquantity'] - $product['quantity'];
                 $product_edit           = Product::find($product['product_id']);
                 $product_edit->quantity = $new_qty;
                 $product_edit->save();
 
                 $tax_price = 0;
-                if(!empty($product['tax']))
-                {
-                    foreach($product['tax'] as $key => $taxs)
-                    {
+                if (!empty($product['tax'])) {
+                    foreach ($product['tax'] as $key => $taxs) {
                         $tax_price += $product['price'] * $product['quantity'] * $taxs['tax'] / 100;
-
                     }
                 }
                 $totalprice     += $product['price'] * $product['quantity'] + $tax_price;
                 $product_name[] = $product['product_name'];
                 $product_id[]   = $product['id'];
-            }
-            elseif($product['variant_id'] != 0)
-            {
+            } elseif ($product['variant_id'] != 0) {
                 $new_qty                   = $product['originalvariantquantity'] - $product['quantity'];
                 $product_variant           = ProductVariantOption::find($product['variant_id']);
                 $product_variant->quantity = $new_qty;
                 $product_variant->save();
 
                 $tax_price = 0;
-                if(!empty($product['tax']))
-                {
-                    foreach($product['tax'] as $key => $taxs)
-                    {
+                if (!empty($product['tax'])) {
+                    foreach ($product['tax'] as $key => $taxs) {
                         $tax_price += $product['variant_price'] * $product['quantity'] * $taxs['tax'] / 100;
-
                     }
                 }
                 $totalprice     += $product['variant_price'] * $product['quantity'] + $tax_price;
@@ -2127,11 +1827,9 @@ To collect the order you need to show the receipt at the counter.
             }
         }
 
-        if(isset($cart['shipping']) && isset($cart['shipping']['shipping_id']) && !empty($cart['shipping']))
-        {
+        if (isset($cart['shipping']) && isset($cart['shipping']['shipping_id']) && !empty($cart['shipping'])) {
             $shipping = Shipping::find($cart['shipping']['shipping_id']);
-            if(!empty($shipping))
-            {
+            if (!empty($shipping)) {
                 $totalprice     = $totalprice + $shipping->price;
                 $shipping_name  = $shipping->name;
                 $shipping_price = $shipping->price;
@@ -2143,13 +1841,10 @@ To collect the order you need to show the receipt at the counter.
                     ]
                 );
             }
-        }
-        else
-        {
+        } else {
             $shipping_data = '';
         }
-        if($product)
-        {
+        if ($product) {
             $order                  = new Order();
             $order->order_id        = '#' . time();
             $order->name            = $cust_details['name'];
@@ -2185,26 +1880,21 @@ To collect the order you need to show the receipt at the counter.
             );
 
             $order_email = $order->email;
-            $owner=User::find($store->created_by);
-            $owner_email=$owner->email;
+            $owner = User::find($store->created_by);
+            $owner_email = $owner->email;
             $order_id = Crypt::encrypt($order->id);
 
-            if(isset($store->mail_driver) && !empty($store->mail_driver))
-            {
+            if (isset($store->mail_driver) && !empty($store->mail_driver)) {
                 $dArr = [
                     'order_name' => $order->name,
                 ];
 
                 $resp = Utility::sendEmailTemplate('Order Created', $order_email, $dArr, $store, $order_id);
-                $resp1=Utility::sendEmailTemplate('Order Created For Owner', $owner_email, $dArr, $store, $order_id);
-               
-               
+                $resp1 = Utility::sendEmailTemplate('Order Created For Owner', $owner_email, $dArr, $store, $order_id);
             }
 
             return $msg;
-        }
-        else
-        {
+        } else {
             return response()->json(
                 [
                     'status' => 'error',
@@ -2220,10 +1910,8 @@ To collect the order you need to show the receipt at the counter.
 
         $shipping = Shipping::where('store_id', $store->id)->first();
 
-        if(!empty($shipping))
-        {
-            if($request->shipping_price == '0.00')
-            {
+        if (!empty($shipping)) {
+            if ($request->shipping_price == '0.00') {
                 return response()->json(
                     [
                         'status' => 'error',
@@ -2238,12 +1926,9 @@ To collect the order you need to show the receipt at the counter.
         $cart         = session()->get($slug);
         $cust_details = $cart['customer'];
 
-        if(!empty($request->coupon_id))
-        {
+        if (!empty($request->coupon_id)) {
             $coupon = ProductCoupon::where('id', $request->coupon_id)->first();
-        }
-        else
-        {
+        } else {
             $coupon = '';
         }
 
@@ -2252,42 +1937,32 @@ To collect the order you need to show the receipt at the counter.
         $tax_name     = [];
         $totalprice   = 0;
 
-        foreach($products as $key => $product)
-        {
-            if($product['variant_id'] == 0)
-            {
+        foreach ($products as $key => $product) {
+            if ($product['variant_id'] == 0) {
                 $new_qty                = $product['originalquantity'] - $product['quantity'];
                 $product_edit           = Product::find($product['product_id']);
                 $product_edit->quantity = $new_qty;
                 $product_edit->save();
 
                 $tax_price = 0;
-                if(!empty($product['tax']))
-                {
-                    foreach($product['tax'] as $key => $taxs)
-                    {
+                if (!empty($product['tax'])) {
+                    foreach ($product['tax'] as $key => $taxs) {
                         $tax_price += $product['price'] * $product['quantity'] * $taxs['tax'] / 100;
-
                     }
                 }
                 $totalprice     += $product['price'] * $product['quantity'] + $tax_price;
                 $product_name[] = $product['product_name'];
                 $product_id[]   = $product['id'];
-            }
-            elseif($product['variant_id'] != 0)
-            {
+            } elseif ($product['variant_id'] != 0) {
                 $new_qty                   = $product['originalvariantquantity'] - $product['quantity'];
                 $product_variant           = ProductVariantOption::find($product['variant_id']);
                 $product_variant->quantity = $new_qty;
                 $product_variant->save();
 
                 $tax_price = 0;
-                if(!empty($product['tax']))
-                {
-                    foreach($product['tax'] as $key => $taxs)
-                    {
+                if (!empty($product['tax'])) {
+                    foreach ($product['tax'] as $key => $taxs) {
                         $tax_price += $product['variant_price'] * $product['quantity'] * $taxs['tax'] / 100;
-
                     }
                 }
                 $totalprice     += $product['variant_price'] * $product['quantity'] + $tax_price;
@@ -2296,11 +1971,9 @@ To collect the order you need to show the receipt at the counter.
             }
         }
 
-        if(isset($cart['shipping']) && isset($cart['shipping']['shipping_id']) && !empty($cart['shipping']))
-        {
+        if (isset($cart['shipping']) && isset($cart['shipping']['shipping_id']) && !empty($cart['shipping'])) {
             $shipping = Shipping::find($cart['shipping']['shipping_id']);
-            if(!empty($shipping))
-            {
+            if (!empty($shipping)) {
                 $totalprice     = $totalprice + $shipping->price;
                 $shipping_name  = $shipping->name;
                 $shipping_price = $shipping->price;
@@ -2312,14 +1985,11 @@ To collect the order you need to show the receipt at the counter.
                     ]
                 );
             }
-        }
-        else
-        {
+        } else {
             $shipping_data = '';
         }
 
-        if($product)
-        {
+        if ($product) {
             $order                  = new Order();
             $order->order_id        = '#' . time();
             $order->name            = $cust_details['name'];
@@ -2356,34 +2026,28 @@ To collect the order you need to show the receipt at the counter.
 
             $order_email = $order->email;
             $order_id = Crypt::encrypt($order->id);
-            
-            $owner=User::find($store->created_by);
-            $owner_email=$owner->email;
 
-            if(isset($store->mail_driver) && !empty($store->mail_driver))
-            {
+            $owner = User::find($store->created_by);
+            $owner_email = $owner->email;
+
+            if (isset($store->mail_driver) && !empty($store->mail_driver)) {
                 $dArr = [
                     'order_name' => $order->name,
                 ];
 
                 $resp = Utility::sendEmailTemplate('Order Created', $order_email, $dArr, $store, $order_id);
 
-                $resp1=Utility::sendEmailTemplate('Order Created For Owner', $owner_email, $dArr, $store, $order_id);
-
-              
+                $resp1 = Utility::sendEmailTemplate('Order Created For Owner', $owner_email, $dArr, $store, $order_id);
             }
 
             return $msg;
-        }
-        else
-        {
+        } else {
             return response()->json(
                 [
                     'status' => 'error',
                     'success' => __('Failed'),
                 ]
             );
-
         }
     }
 
@@ -2394,12 +2058,9 @@ To collect the order you need to show the receipt at the counter.
         $order_id     = $request['order_id'];
         $cart         = session()->get($slug);
         $cust_details = $cart['customer'];
-        if(!empty($request->coupon_id))
-        {
+        if (!empty($request->coupon_id)) {
             $coupon = ProductCoupon::where('id', $request->coupon_id)->first();
-        }
-        else
-        {
+        } else {
             $coupon = '';
         }
 
@@ -2407,42 +2068,32 @@ To collect the order you need to show the receipt at the counter.
         $product_id   = [];
         $tax_name     = [];
         $totalprice   = 0;
-        foreach($products as $key => $product)
-        {
-            if($product['variant_id'] == 0)
-            {
+        foreach ($products as $key => $product) {
+            if ($product['variant_id'] == 0) {
                 $new_qty                = $product['originalquantity'] - $product['quantity'];
                 $product_edit           = Product::find($product['product_id']);
                 $product_edit->quantity = $new_qty;
                 $product_edit->save();
 
                 $tax_price = 0;
-                if(!empty($product['tax']))
-                {
-                    foreach($product['tax'] as $key => $taxs)
-                    {
+                if (!empty($product['tax'])) {
+                    foreach ($product['tax'] as $key => $taxs) {
                         $tax_price += $product['price'] * $product['quantity'] * $taxs['tax'] / 100;
-
                     }
                 }
                 $totalprice     += $product['price'] * $product['quantity'] + $tax_price;
                 $product_name[] = $product['product_name'];
                 $product_id[]   = $product['id'];
-            }
-            elseif($product['variant_id'] != 0)
-            {
+            } elseif ($product['variant_id'] != 0) {
                 $new_qty                   = $product['originalvariantquantity'] - $product['quantity'];
                 $product_variant           = ProductVariantOption::find($product['variant_id']);
                 $product_variant->quantity = $new_qty;
                 $product_variant->save();
 
                 $tax_price = 0;
-                if(!empty($product['tax']))
-                {
-                    foreach($product['tax'] as $key => $taxs)
-                    {
+                if (!empty($product['tax'])) {
+                    foreach ($product['tax'] as $key => $taxs) {
                         $tax_price += $product['variant_price'] * $product['quantity'] * $taxs['tax'] / 100;
-
                     }
                 }
                 $totalprice     += $product['variant_price'] * $product['quantity'] + $tax_price;
@@ -2450,11 +2101,9 @@ To collect the order you need to show the receipt at the counter.
                 $product_id[]   = $product['id'];
             }
         }
-        if(isset($cart['shipping']) && isset($cart['shipping']['shipping_id']) && !empty($cart['shipping']))
-        {
+        if (isset($cart['shipping']) && isset($cart['shipping']['shipping_id']) && !empty($cart['shipping'])) {
             $shipping = Shipping::find($cart['shipping']['shipping_id']);
-            if(!empty($shipping))
-            {
+            if (!empty($shipping)) {
                 $totalprice     = $totalprice + $shipping->price;
                 $shipping_name  = $shipping->name;
                 $shipping_price = $shipping->price;
@@ -2466,15 +2115,11 @@ To collect the order you need to show the receipt at the counter.
                     ]
                 );
             }
-
-        }
-        else
-        {
+        } else {
             $shipping_data = '';
         }
 
-        if($product)
-        {
+        if ($product) {
             $order                  = new Order();
             $order->order_id        = $order_id;
             $order->email           = $cust_details['email'];
@@ -2509,8 +2154,7 @@ To collect the order you need to show the receipt at the counter.
             $order_email = $order->email;
             $order_id = Crypt::encrypt($order->id);
 
-            if(isset($store->mail_driver) && !empty($store->mail_driver))
-            {
+            if (isset($store->mail_driver) && !empty($store->mail_driver)) {
                 $dArr = [
                     'order_name' => $order->name,
                 ];
@@ -2519,16 +2163,13 @@ To collect the order you need to show the receipt at the counter.
             }
 
             return $msg;
-        }
-        else
-        {
+        } else {
             return response()->json(
                 [
                     'status' => 'error',
                     'success' => __('Failed'),
                 ]
             );
-
         }
     }
 
@@ -2539,12 +2180,9 @@ To collect the order you need to show the receipt at the counter.
         $order_id     = $request['order_id'];
         $cart         = session()->get($slug);
         $cust_details = $cart['customer'];
-        if(!empty($request->coupon_id))
-        {
+        if (!empty($request->coupon_id)) {
             $coupon = ProductCoupon::where('id', $request->coupon_id)->first();
-        }
-        else
-        {
+        } else {
             $coupon = '';
         }
 
@@ -2552,42 +2190,32 @@ To collect the order you need to show the receipt at the counter.
         $product_id   = [];
         $tax_name     = [];
         $totalprice   = 0;
-        foreach($products as $key => $product)
-        {
-            if($product['variant_id'] == 0)
-            {
+        foreach ($products as $key => $product) {
+            if ($product['variant_id'] == 0) {
                 $new_qty                = $product['originalquantity'] - $product['quantity'];
                 $product_edit           = Product::find($product['product_id']);
                 $product_edit->quantity = $new_qty;
                 $product_edit->save();
 
                 $tax_price = 0;
-                if(!empty($product['tax']))
-                {
-                    foreach($product['tax'] as $key => $taxs)
-                    {
+                if (!empty($product['tax'])) {
+                    foreach ($product['tax'] as $key => $taxs) {
                         $tax_price += $product['price'] * $product['quantity'] * $taxs['tax'] / 100;
-
                     }
                 }
                 $totalprice     += $product['price'] * $product['quantity'] + $tax_price;
                 $product_name[] = $product['product_name'];
                 $product_id[]   = $product['id'];
-            }
-            elseif($product['variant_id'] != 0)
-            {
+            } elseif ($product['variant_id'] != 0) {
                 $new_qty                   = $product['originalvariantquantity'] - $product['quantity'];
                 $product_variant           = ProductVariantOption::find($product['variant_id']);
                 $product_variant->quantity = $new_qty;
                 $product_variant->save();
 
                 $tax_price = 0;
-                if(!empty($product['tax']))
-                {
-                    foreach($product['tax'] as $key => $taxs)
-                    {
+                if (!empty($product['tax'])) {
+                    foreach ($product['tax'] as $key => $taxs) {
                         $tax_price += $product['variant_price'] * $product['quantity'] * $taxs['tax'] / 100;
-
                     }
                 }
                 $totalprice     += $product['variant_price'] * $product['quantity'] + $tax_price;
@@ -2595,11 +2223,9 @@ To collect the order you need to show the receipt at the counter.
                 $product_id[]   = $product['id'];
             }
         }
-        if(isset($cart['shipping']) && isset($cart['shipping']['shipping_id']) && !empty($cart['shipping']))
-        {
+        if (isset($cart['shipping']) && isset($cart['shipping']['shipping_id']) && !empty($cart['shipping'])) {
             $shipping = Shipping::find($cart['shipping']['shipping_id']);
-            if(!empty($shipping))
-            {
+            if (!empty($shipping)) {
                 $totalprice     = $totalprice + $shipping->price;
                 $shipping_name  = $shipping->name;
                 $shipping_price = $shipping->price;
@@ -2611,14 +2237,10 @@ To collect the order you need to show the receipt at the counter.
                     ]
                 );
             }
-
-        }
-        else
-        {
+        } else {
             $shipping_data = '';
         }
-        if($product)
-        {
+        if ($product) {
             $order                  = new Order();
             $order->order_id        = $order_id;
             $order->name            = $cust_details['name'];
@@ -2651,10 +2273,8 @@ To collect the order you need to show the receipt at the counter.
                 ]
             );
             session()->forget($slug);
-            try
-            {
-                if(isset($store->mail_driver) && !empty($store->mail_driver))
-                {
+            try {
+                if (isset($store->mail_driver) && !empty($store->mail_driver)) {
                     $dArr = [
                         'order_name' => $order->name,
                     ];
@@ -2665,14 +2285,10 @@ To collect the order you need to show the receipt at the counter.
                 }
 
                 return $msg;
-            }
-            catch(\Exception $e)
-            {
+            } catch (\Exception $e) {
                 return $msg;
             }
-        }
-        else
-        {
+        } else {
             return response()->json(
                 [
                     'status' => 'error',
@@ -2689,24 +2305,19 @@ To collect the order you need to show the receipt at the counter.
 
     public function grid()
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
             $users  = User::where('created_by', '=', \Auth::user()->creatorId())->where('type', '=', 'owner')->get();
             $stores = Store::get();
 
             return view('user.grid', compact('users', 'stores'));
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('permission Denied'));
         }
-
     }
 
     public function upgradePlan($user_id)
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
             $user = User::find($user_id);
 
             $plans = Plan::get();
@@ -2717,14 +2328,12 @@ To collect the order you need to show the receipt at the counter.
 
     public function activePlan($user_id, $plan_id)
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
 
             $user       = User::find($user_id);
             $assignPlan = $user->assignPlan($plan_id);
             $plan       = Plan::find($plan_id);
-            if($assignPlan['is_success'] == true && !empty($plan))
-            {
+            if ($assignPlan['is_success'] == true && !empty($plan)) {
                 $orderID = strtoupper(str_replace('.', '', uniqid('', true)));
                 PlanOrder::create(
                     [
@@ -2746,27 +2355,21 @@ To collect the order you need to show the receipt at the counter.
                 );
 
                 return redirect()->back()->with('success', __('Plan successfully upgraded.'));
-            }
-            else
-            {
+            } else {
                 return redirect()->back()->with('error', __('Plan fail to upgrade.'));
             }
         }
-
     }
 
     public function storedit($id)
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
             $user       = User::find($id);
             $user_store = UserStore::where('user_id', $id)->first();
             $store      = Store::where('id', $user_store->store_id)->first();
 
             return view('admin_store.edit', compact('store', 'user'));
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('permission Denied'));
         }
     }
@@ -2775,13 +2378,13 @@ To collect the order you need to show the receipt at the counter.
     {
         $user      = User::find($id);
         $validator = \Validator::make(
-            $request->all(), [
-                               'username' => 'required|max:120',
-                               'name' => 'required|max:120',
-                           ]
+            $request->all(),
+            [
+                'username' => 'required|max:120',
+                'name' => 'required|max:120',
+            ]
         );
-        if($validator->fails())
-        {
+        if ($validator->fails()) {
             $messages = $validator->getMessageBag();
 
             return redirect()->back()->with('error', $messages->first());
@@ -2813,13 +2416,11 @@ To collect the order you need to show the receipt at the counter.
         );
 
         return redirect()->back()->with('success', __('User Successfully Updated'));
-
     }
 
     public function storedestroy($id)
     {
-        if(\Auth::user()->type == 'super admin')
-        {
+        if (\Auth::user()->type == 'super admin') {
             $user      = User::find($id);
             $userstore = UserStore::where('user_id', $user->id)->first();
             $store     = Store::where('id', $userstore->store_id)->first();
@@ -2830,9 +2431,7 @@ To collect the order you need to show the receipt at the counter.
             $store->delete();
 
             return redirect()->back()->with('success', __('User Store Successfully Deleted'));
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('permission Denied'));
         }
     }
@@ -2840,13 +2439,13 @@ To collect the order you need to show the receipt at the counter.
     public function changeTheme(Request $request, $slug)
     {
         $validator = \Validator::make(
-            $request->all(), [
-                               'theme_color' => 'required',
-                               'themefile' => 'required',
-                           ]
+            $request->all(),
+            [
+                'theme_color' => 'required',
+                'themefile' => 'required',
+            ]
         );
-        if($validator->fails())
-        {
+        if ($validator->fails()) {
             $messages = $validator->getMessageBag();
 
             return redirect()->back()->with('error', $messages->first());
@@ -2857,22 +2456,18 @@ To collect the order you need to show the receipt at the counter.
         $store->save();
 
         return redirect()->back()->with('success', __('Theme Successfully Updated.'));
-
     }
 
     public function changeCurrantStore($storeID)
     {
         $objStore = Store::find($storeID);
-        if($objStore->is_active)
-        {
+        if ($objStore->is_active) {
             $objUser                = Auth::user();
             $objUser->current_store = $storeID;
             $objUser->update();
 
             return redirect()->route('dashboard')->with('success', __('Store Change Successfully!'));
-        }
-        else
-        {
+        } else {
             return redirect()->back()->with('error', __('Store is locked'));
         }
     }
@@ -2880,13 +2475,13 @@ To collect the order you need to show the receipt at the counter.
     public function customMassage(Request $request, $slug)
     {
         $validator = \Validator::make(
-            $request->all(), [
-                               'content' => 'required',
-                           ]
+            $request->all(),
+            [
+                'content' => 'required',
+            ]
         );
 
-        if($validator->fails())
-        {
+        if ($validator->fails()) {
             $messages = $validator->getMessageBag();
 
             return redirect()->back()->with('error', $messages->first());
@@ -2912,21 +2507,20 @@ To collect the order you need to show the receipt at the counter.
     {
 
         $store = Store::where('slug', $slug)->where('created_by', Auth::user()->id)->first();
-       
+
 
         $post = [];
 
         //Top Bar Setting
-        if(isset($request->enable_top_bar) && !empty($request->enable_top_bar) && $request->enable_top_bar == 'on')
-        {
+        if (isset($request->enable_top_bar) && !empty($request->enable_top_bar) && $request->enable_top_bar == 'on') {
             $validator = \Validator::make(
-                $request->all(), [
-                                   'top_bar_title' => 'required|string|max:255',
-                                   'top_bar_number' => 'required|string|max:255',
-                               ]
+                $request->all(),
+                [
+                    'top_bar_title' => 'required|string|max:255',
+                    'top_bar_number' => 'required|string|max:255',
+                ]
             );
-            if($validator->fails())
-            {
+            if ($validator->fails()) {
                 $messages = $validator->getMessageBag();
 
                 return redirect()->back()->with('error', $messages->first());
@@ -2939,114 +2533,98 @@ To collect the order you need to show the receipt at the counter.
             $post['top_bar_instagram'] = $request->top_bar_instagram;
             $post['top_bar_twitter']   = $request->top_bar_twitter;
             $post['top_bar_messenger'] = $request->top_bar_messenger;
-        }
-        else
-        {
+        } else {
             $post['enable_top_bar'] = 'off';
         }
 
         //Banner Img Setting
-        if(isset($request->enable_banner_img) && !empty($request->enable_banner_img) && $request->enable_banner_img == 'on')
-        {
+        if (isset($request->enable_banner_img) && !empty($request->enable_banner_img) && $request->enable_banner_img == 'on') {
             $validator = \Validator::make(
-                $request->all(), [
-                                   'banner_img' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                               ]
+                $request->all(),
+                [
+                    'banner_img' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                ]
             );
 
-            if($validator->fails())
-            {
+            if ($validator->fails()) {
                 $messages = $validator->getMessageBag();
 
                 return redirect()->back()->with('error', $messages->first());
             }
-            if(!empty($request->banner_img))
-            {
+            if (!empty($request->banner_img)) {
                 $filenameWithExt  = $request->file('banner_img')->getClientOriginalName();
                 $filename         = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                 $extension        = $request->file('banner_img')->getClientOriginalExtension();
                 $fileNameToStores = $filename . '_' . time() . '.' . $extension;
-                $dir              = storage_path('uploads/store_logo/');
+                $dir              = storage_path('app/public/uploads/store_logo/');
 
-                if(!file_exists($dir))
-                {
+                if (!file_exists($dir)) {
                     mkdir($dir, 0777, true);
                 }
 
-                $path                      = $request->file('banner_img')->storeAs('uploads/store_logo/', $fileNameToStores);
+                $path                      = $request->file('banner_img')->storeAs('app/public/uploads/store_logo/', $fileNameToStores);
                 $post['enable_banner_img'] = $request->enable_banner_img;
                 $post['banner_img']        = $fileNameToStores;
             }
-
-        }
-        else
-        {
+        } else {
             $post['enable_banner_img'] = 'off';
         }
 
         //Header Setting
-        if(isset($request->enable_header_img) && $request->enable_header_img == 'on')
-        {
+        if (isset($request->enable_header_img) && $request->enable_header_img == 'on') {
             $validator = \Validator::make(
-                $request->all(), [
-                                   'header_title' => 'required|string|max:255',
-                                   'header_desc' => 'required|string|max:255',
-                                   'button_text' => 'required|string|max:255',
-                                   'header_img' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                               ]
+                $request->all(),
+                [
+                    'header_title' => 'required|string|max:255',
+                    'header_desc' => 'required|string|max:255',
+                    'button_text' => 'required|string|max:255',
+                    'header_img' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                ]
             );
-            if($validator->fails())
-            {
+            if ($validator->fails()) {
                 $messages = $validator->getMessageBag();
 
                 return redirect()->back()->with('error', $messages->first());
             }
 
-            if(!empty($request->header_img))
-            {
+            if (!empty($request->header_img)) {
                 $filenameWithExt  = $request->file('header_img')->getClientOriginalName();
                 $filename         = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                 $extension        = $request->file('header_img')->getClientOriginalExtension();
                 $fileNameToStores = $filename . '_' . time() . '.' . $extension;
-                $dir              = storage_path('uploads/store_logo/');
+                $dir              = storage_path('app/public/uploads/store_logo/');
 
-                if(!file_exists($dir))
-                {
+                if (!file_exists($dir)) {
                     mkdir($dir, 0777, true);
                 }
 
-                $path = $request->file('header_img')->storeAs('uploads/store_logo/', $fileNameToStores);
+                $path = $request->file('header_img')->storeAs('app/public/uploads/store_logo/', $fileNameToStores);
             }
 
             $post['enable_header_img'] = $request->enable_header_img;
             $post['header_title']      = $request->header_title;
             $post['header_desc']       = $request->header_desc;
             $post['button_text']       = $request->button_text;
-            if(!empty($fileNameToStores))
-            {
+            if (!empty($fileNameToStores)) {
                 $post['header_img'] = $fileNameToStores;
             }
-        }
-        else
-        {
+        } else {
             $post['enable_header_img'] = 'off';
         }
 
         //Features Setting
-        if(isset($request->enable_features) && $request->enable_features == 'on')
-        {
+        if (isset($request->enable_features) && $request->enable_features == 'on') {
             /*Enable Features 1*/
-            if(isset($request->enable_features1) && $request->enable_features1 == 'on')
-            {
+            if (isset($request->enable_features1) && $request->enable_features1 == 'on') {
                 $validator = \Validator::make(
-                    $request->all(), [
-                                       'features_icon1' => 'required',
-                                       'features_title1' => 'required',
-                                       'features_description1' => 'required',
-                                   ]
+                    $request->all(),
+                    [
+                        'features_icon1' => 'required',
+                        'features_title1' => 'required',
+                        'features_description1' => 'required',
+                    ]
                 );
-                if($validator->fails())
-                {
+                if ($validator->fails()) {
                     $messages = $validator->getMessageBag();
 
                     return redirect()->back()->with('error', $messages->first());
@@ -3055,24 +2633,21 @@ To collect the order you need to show the receipt at the counter.
                 $post['features_icon1']        = $request->features_icon1;
                 $post['features_title1']       = $request->features_title1;
                 $post['features_description1'] = $request->features_description1;
-            }
-            else
-            {
+            } else {
                 $post['enable_features1'] = 'off';
             }
 
             /*Enable Features 1*/
-            if(isset($request->enable_features2) && $request->enable_features2 == 'on')
-            {
+            if (isset($request->enable_features2) && $request->enable_features2 == 'on') {
                 $validator = \Validator::make(
-                    $request->all(), [
-                                       'features_icon2' => 'required',
-                                       'features_title2' => 'required',
-                                       'features_description2' => 'required',
-                                   ]
+                    $request->all(),
+                    [
+                        'features_icon2' => 'required',
+                        'features_title2' => 'required',
+                        'features_description2' => 'required',
+                    ]
                 );
-                if($validator->fails())
-                {
+                if ($validator->fails()) {
                     $messages = $validator->getMessageBag();
 
                     return redirect()->back()->with('error', $messages->first());
@@ -3081,24 +2656,21 @@ To collect the order you need to show the receipt at the counter.
                 $post['features_icon2']        = $request->features_icon2;
                 $post['features_title2']       = $request->features_title2;
                 $post['features_description2'] = $request->features_description2;
-            }
-            else
-            {
+            } else {
                 $post['enable_features2'] = 'off';
             }
 
             /*Enable Features 1*/
-            if(isset($request->enable_features3) && $request->enable_features3 == 'on')
-            {
+            if (isset($request->enable_features3) && $request->enable_features3 == 'on') {
                 $validator = \Validator::make(
-                    $request->all(), [
-                                       'features_icon3' => 'required',
-                                       'features_title3' => 'required',
-                                       'features_description3' => 'required',
-                                   ]
+                    $request->all(),
+                    [
+                        'features_icon3' => 'required',
+                        'features_title3' => 'required',
+                        'features_description3' => 'required',
+                    ]
                 );
-                if($validator->fails())
-                {
+                if ($validator->fails()) {
                     $messages = $validator->getMessageBag();
 
                     return redirect()->back()->with('error', $messages->first());
@@ -3107,224 +2679,192 @@ To collect the order you need to show the receipt at the counter.
                 $post['features_icon3']        = $request->features_icon3;
                 $post['features_title3']       = $request->features_title3;
                 $post['features_description3'] = $request->features_description3;
-            }
-            else
-            {
+            } else {
                 $post['enable_features3'] = 'off';
             }
 
             $post['enable_features'] = 'on';
-        }
-        else
-        {
+        } else {
             $post['enable_features'] = 'off';
         }
 
         //Header Img
-        if(isset($request->enable_email_subscriber) && $request->enable_email_subscriber == 'on')
-        {
+        if (isset($request->enable_email_subscriber) && $request->enable_email_subscriber == 'on') {
             $validator = \Validator::make(
-                $request->all(), [
-                                   'subscriber_title' => 'required',
-                                   'subscriber_sub_title' => 'required',
-                                   'subscriber_img' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                               ]
+                $request->all(),
+                [
+                    'subscriber_title' => 'required',
+                    'subscriber_sub_title' => 'required',
+                    'subscriber_img' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                ]
             );
-            if($validator->fails())
-            {
+            if ($validator->fails()) {
                 $messages = $validator->getMessageBag();
 
                 return redirect()->back()->with('error', $messages->first());
             }
 
 
-            if(!empty($request->subscriber_img))
-            {
+            if (!empty($request->subscriber_img)) {
                 $filenameWithExt  = $request->file('subscriber_img')->getClientOriginalName();
                 $filename         = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                 $extension        = $request->file('subscriber_img')->getClientOriginalExtension();
                 $fileNameToStores = $filename . '_' . time() . '.' . $extension;
-                $dir              = storage_path('uploads/store_logo/');
+                $dir              = storage_path('app/public/uploads/store_logo/');
 
-                if(!file_exists($dir))
-                {
+                if (!file_exists($dir)) {
                     mkdir($dir, 0777, true);
                 }
 
-                $path = $request->file('subscriber_img')->storeAs('uploads/store_logo/', $fileNameToStores);
+                $path = $request->file('subscriber_img')->storeAs('app/public/uploads/store_logo/', $fileNameToStores);
             }
 
             $post['enable_email_subscriber'] = $request->enable_email_subscriber;
             $post['subscriber_title']        = $request->subscriber_title;
             $post['subscriber_sub_title']    = $request->subscriber_sub_title;
 
-            if(!empty($fileNameToStores))
-            {
+            if (!empty($fileNameToStores)) {
                 $post['subscriber_img'] = $fileNameToStores;
             }
-        }
-        else
-        {
+        } else {
             $post['enable_email_subscriber'] = 'off';
         }
 
         //Testimonial Setting
-        if(isset($request->enable_testimonial) && $request->enable_testimonial == 'on')
-        {
-            if(!empty($request->testimonial_main_heading))
-            {
+        if (isset($request->enable_testimonial) && $request->enable_testimonial == 'on') {
+            if (!empty($request->testimonial_main_heading)) {
                 $post['testimonial_main_heading'] = $request->testimonial_main_heading;
             }
-            if(!empty($request->testimonial_main_heading))
-            {
+            if (!empty($request->testimonial_main_heading)) {
                 $post['testimonial_main_heading_title'] = $request->testimonial_main_heading_title;
             }
             /*TESTIMONIAL 1*/
-            if(isset($request->enable_testimonial1) && $request->enable_testimonial1 == 'on')
-            {
+            if (isset($request->enable_testimonial1) && $request->enable_testimonial1 == 'on') {
                 $validator = \Validator::make(
-                    $request->all(), [
-                                       'testimonial_name1' => 'required',
-                                       'testimonial_description1' => 'required',
-                                       'testimonial_about_us1' => 'required',
-                                       'testimonial_img1' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                                   ]
+                    $request->all(),
+                    [
+                        'testimonial_name1' => 'required',
+                        'testimonial_description1' => 'required',
+                        'testimonial_about_us1' => 'required',
+                        'testimonial_img1' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                    ]
                 );
-                if($validator->fails())
-                {
+                if ($validator->fails()) {
                     $messages = $validator->getMessageBag();
 
                     return redirect()->back()->with('error', $messages->first());
                 }
-                if(!empty($request['testimonial_img1']))
-                {
+                if (!empty($request['testimonial_img1'])) {
                     $filenameWithExt   = $request['testimonial_img1']->getClientOriginalName();
                     $filename          = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                     $extension         = $request['testimonial_img1']->getClientOriginalExtension();
                     $fileNameToStores1 = $filename . '_' . time() . 1 . '.' . $extension;
-                    $dir               = storage_path('uploads/store_logo/');
+                    $dir               = storage_path('app/public/uploads/store_logo/');
 
-                    if(!file_exists($dir))
-                    {
+                    if (!file_exists($dir)) {
                         mkdir($dir, 0777, true);
                     }
-                    $path                     = $request['testimonial_img1']->storeAs('uploads/store_logo/', $fileNameToStores1);
+                    $path                     = $request['testimonial_img1']->storeAs('app/public/uploads/store_logo/', $fileNameToStores1);
                     $post['testimonial_img1'] = $fileNameToStores1;
                 }
                 $post['enable_testimonial1']      = $request->enable_testimonial1;
                 $post['testimonial_name1']        = $request->testimonial_name1;
                 $post['testimonial_about_us1']    = $request->testimonial_about_us1;
                 $post['testimonial_description1'] = $request->testimonial_description1;
-            }
-            else
-            {
+            } else {
                 $post['enable_testimonial1'] = 'off';
             }
 
             /*TESTIMONIAL 2*/
-            if(isset($request->enable_testimonial2) && $request->enable_testimonial2 == 'on')
-            {
+            if (isset($request->enable_testimonial2) && $request->enable_testimonial2 == 'on') {
                 $validator = \Validator::make(
-                    $request->all(), [
-                                       'testimonial_description2' => 'required',
-                                       'testimonial_name2' => 'required',
-                                       'testimonial_about_us2' => 'required',
-                                       'testimonial_img2' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                                   ]
+                    $request->all(),
+                    [
+                        'testimonial_description2' => 'required',
+                        'testimonial_name2' => 'required',
+                        'testimonial_about_us2' => 'required',
+                        'testimonial_img2' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                    ]
                 );
-                if($validator->fails())
-                {
+                if ($validator->fails()) {
                     $messages = $validator->getMessageBag();
 
                     return redirect()->back()->with('error', $messages->first());
                 }
-                if(!empty($request['testimonial_img2']))
-                {
+                if (!empty($request['testimonial_img2'])) {
                     $filenameWithExt   = $request['testimonial_img2']->getClientOriginalName();
                     $filename          = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                     $extension         = $request['testimonial_img2']->getClientOriginalExtension();
                     $fileNameToStores2 = $filename . '_' . time() . 2 . '.' . $extension;
-                    $dir               = storage_path('uploads/store_logo/');
+                    $dir               = storage_path('app/public/uploads/store_logo/');
 
-                    if(!file_exists($dir))
-                    {
+                    if (!file_exists($dir)) {
                         mkdir($dir, 0777, true);
                     }
-                    $path                     = $request['testimonial_img2']->storeAs('uploads/store_logo/', $fileNameToStores2);
+                    $path                     = $request['testimonial_img2']->storeAs('app/public/uploads/store_logo/', $fileNameToStores2);
                     $post['testimonial_img2'] = $fileNameToStores2;
                 }
                 $post['enable_testimonial2']      = $request->enable_testimonial2;
                 $post['testimonial_name2']        = $request->testimonial_name2;
                 $post['testimonial_about_us2']    = $request->testimonial_about_us2;
                 $post['testimonial_description2'] = $request->testimonial_description2;
-            }
-            else
-            {
+            } else {
                 $post['enable_testimonial2'] = 'off';
             }
 
             /*TESTIMONIAL 2*/
-            if(isset($request->enable_testimonial3) && $request->enable_testimonial3 == 'on')
-            {
+            if (isset($request->enable_testimonial3) && $request->enable_testimonial3 == 'on') {
                 $validator = \Validator::make(
-                    $request->all(), [
-                                       'testimonial_description3' => 'required',
-                                       'testimonial_name3' => 'required',
-                                       'testimonial_about_us3' => 'required',
-                                       'testimonial_img3' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                                   ]
+                    $request->all(),
+                    [
+                        'testimonial_description3' => 'required',
+                        'testimonial_name3' => 'required',
+                        'testimonial_about_us3' => 'required',
+                        'testimonial_img3' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+                    ]
                 );
-                if($validator->fails())
-                {
+                if ($validator->fails()) {
                     $messages = $validator->getMessageBag();
 
                     return redirect()->back()->with('error', $messages->first());
                 }
-                if(!empty($request['testimonial_img3']))
-                {
+                if (!empty($request['testimonial_img3'])) {
                     $filenameWithExt   = $request['testimonial_img3']->getClientOriginalName();
                     $filename          = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                     $extension         = $request['testimonial_img3']->getClientOriginalExtension();
                     $fileNameToStores3 = $filename . '_' . time() . 3 . '.' . $extension;
-                    $dir               = storage_path('uploads/store_logo/');
+                    $dir               = storage_path('app/public/uploads/store_logo/');
 
-                    if(!file_exists($dir))
-                    {
+                    if (!file_exists($dir)) {
                         mkdir($dir, 0777, true);
                     }
-                    $path                     = $request['testimonial_img3']->storeAs('uploads/store_logo/', $fileNameToStores3);
+                    $path                     = $request['testimonial_img3']->storeAs('app/public/uploads/store_logo/', $fileNameToStores3);
                     $post['testimonial_img3'] = $fileNameToStores3;
                 }
                 $post['enable_testimonial3']      = $request->enable_testimonial3;
                 $post['testimonial_name3']        = $request->testimonial_name3;
                 $post['testimonial_about_us3']    = $request->testimonial_about_us3;
                 $post['testimonial_description3'] = $request->testimonial_description3;
-            }
-            else
-            {
+            } else {
                 $post['enable_testimonial3'] = 'off';
             }
 
             $post['enable_testimonial'] = $request->enable_testimonial;
-        }
-        else
-        {
+        } else {
             $post['enable_testimonial'] = 'off';
         }
 
         //Categories
-        if(isset($request->enable_categories) && $request->enable_categories == 'on')
-        {
-            if($store->theme_dir != 'theme5')
-            {
+        if (isset($request->enable_categories) && $request->enable_categories == 'on') {
+            if ($store->theme_dir != 'theme5') {
                 $validator = \Validator::make(
-                    $request->all(), [
-                                       'categories' => 'required',
-                                       'categories_title' => 'required',
-                                   ]
+                    $request->all(),
+                    [
+                        'categories' => 'required',
+                        'categories_title' => 'required',
+                    ]
                 );
-                if($validator->fails())
-                {
+                if ($validator->fails()) {
                     $messages = $validator->getMessageBag();
 
                     return redirect()->back()->with('error', $messages->first());
@@ -3334,77 +2874,63 @@ To collect the order you need to show the receipt at the counter.
             $post['enable_categories'] = $request->enable_categories;
             $post['categories']        = !empty($request->categories) ? $request->categories : '';
             $post['categories_title']  = !empty($request->categories_title) ? $request->categories_title : '';
-        }
-        else
-        {
+        } else {
             $post['enable_categories'] = 'off';
         }
 
         //Brand Logo Setting
-        if(isset($request->enable_brand_logo) && $request->enable_brand_logo == 'on')
-        {
+        if (isset($request->enable_brand_logo) && $request->enable_brand_logo == 'on') {
             $post['enable_brand_logo'] = $request->enable_brand_logo;
-        }
-        else
-        {
+        } else {
             $post['enable_brand_logo'] = 'off';
         }
 
-        if(isset($request->file) && !empty($request->file))
-        {
+        if (isset($request->file) && !empty($request->file)) {
             $file_name = [];
-            if(!empty($request->file) && count($request->file) > 0)
-            {
+            if (!empty($request->file) && count($request->file) > 0) {
                 $i = 0;
-                foreach($request->file as $file)
-                {
+                foreach ($request->file as $file) {
                     $i++;
                     $filenameWithExt = $file->getClientOriginalName();
                     $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME) . '_brand';
                     $extension       = $file->getClientOriginalExtension();
                     $fileNameToStore = $filename . '_' . $i . time() . '.' . $extension;
                     $file_name[]     = $fileNameToStore;
-                    $dir             = storage_path('uploads/store_logo/');
-                    if(!file_exists($dir))
-                    {
+                    $dir             = storage_path('app/public/uploads/store_logo/');
+                    if (!file_exists($dir)) {
                         mkdir($dir, 0777, true);
                     }
-                    $path = $file->storeAs('uploads/store_logo/', $fileNameToStore);
+                    $path = $file->storeAs('app/public/uploads/store_logo/', $fileNameToStore);
                 }
             }
 
-            if(!empty($file_name) && count($file_name) > 0)
-            {
+            if (!empty($file_name) && count($file_name) > 0) {
                 $post['brand_logo'] = implode(',', $file_name);
             }
         }
         //End Brand Logo Setting
 
         //Footer 1 Setting
-        if(isset($request->enable_footer_note) && $request->enable_footer_note == 'on')
-        {
-            if(!empty($request->footer_logo))
-            {
+        if (isset($request->enable_footer_note) && $request->enable_footer_note == 'on') {
+            if (!empty($request->footer_logo)) {
                 $filenameWithExt  = $request->file('footer_logo')->getClientOriginalName();
                 $filename         = pathinfo($filenameWithExt, PATHINFO_FILENAME);
                 $extension        = $request->file('footer_logo')->getClientOriginalExtension();
                 $fileNameToStores = $filename . '_' . time() . '.' . $extension;
-                $dir              = storage_path('uploads/store_logo/');
-                if(!file_exists($dir))
-                {
+                $dir              = storage_path('app/public/uploads/store_logo/');
+                if (!file_exists($dir)) {
                     mkdir($dir, 0777, true);
                 }
-                $footerlogo='footerlogo'.$store->theme_dir.'.'.$extension ;
-                
-                
-                $path = $request->file('footer_logo')->storeAs('uploads/store_logo/', $footerlogo);
+                $footerlogo = 'footerlogo' . $store->theme_dir . '.' . $extension;
+
+
+                $path = $request->file('footer_logo')->storeAs('app/public/uploads/store_logo/', $footerlogo);
             }
             $post['enable_footer_note'] = $request->enable_footer_note;
             $post['footer_desc']        = !empty($request->footer_desc) ? $request->footer_desc : '';
             $post['footer_number']      = !empty($request->footer_number) ? $request->footer_number : '';
             /*QUICK LINK 1*/
-            if(isset($request->enable_quick_link1) && $request->enable_quick_link1 == 'on')
-            {
+            if (isset($request->enable_quick_link1) && $request->enable_quick_link1 == 'on') {
                 $post['enable_quick_link1']      = $request->enable_quick_link1;
                 $post['quick_link_header_name1'] = $request->quick_link_header_name1;
                 $post['quick_link_name1']        = $request->quick_link_name1;
@@ -3415,15 +2941,12 @@ To collect the order you need to show the receipt at the counter.
                 $post['quick_link_url13']        = $request->quick_link_url13;
                 $post['quick_link_name14']       = $request->quick_link_name14;
                 $post['quick_link_url14']        = $request->quick_link_url14;
-            }
-            else
-            {
+            } else {
                 $post['enable_quick_link1'] = 'off';
             }
 
             /*QUICk LINK 2*/
-            if(isset($request->enable_quick_link2) && $request->enable_quick_link2 == 'on')
-            {
+            if (isset($request->enable_quick_link2) && $request->enable_quick_link2 == 'on') {
                 $post['enable_quick_link2']      = $request->enable_quick_link2;
                 $post['quick_link_header_name2'] = $request->quick_link_header_name2;
                 $post['quick_link_name21']       = $request->quick_link_name21;
@@ -3434,15 +2957,12 @@ To collect the order you need to show the receipt at the counter.
                 $post['quick_link_url23']        = $request->quick_link_url23;
                 $post['quick_link_name24']       = $request->quick_link_name24;
                 $post['quick_link_url24']        = $request->quick_link_url24;
-            }
-            else
-            {
+            } else {
                 $post['enable_quick_link2'] = 'off';
             }
 
             /*QUICK LINK 3*/
-            if(isset($request->enable_quick_link3) && $request->enable_quick_link3 == 'on')
-            {
+            if (isset($request->enable_quick_link3) && $request->enable_quick_link3 == 'on') {
                 $post['enable_quick_link3']      = $request->enable_quick_link3;
                 $post['quick_link_header_name3'] = $request->quick_link_header_name3;
                 $post['quick_link_name31']       = $request->quick_link_name31;
@@ -3453,15 +2973,12 @@ To collect the order you need to show the receipt at the counter.
                 $post['quick_link_url33']        = $request->quick_link_url33;
                 $post['quick_link_name34']       = $request->quick_link_name34;
                 $post['quick_link_url34']        = $request->quick_link_url34;
-            }
-            else
-            {
+            } else {
                 $post['enable_quick_link3'] = 'off';
             }
 
             /*QUICK LINK 4*/
-            if(isset($request->enable_quick_link4) && $request->enable_quick_link4 == 'on')
-            {
+            if (isset($request->enable_quick_link4) && $request->enable_quick_link4 == 'on') {
                 $post['enable_quick_link4']      = $request->enable_quick_link4;
                 $post['quick_link_header_name4'] = $request->quick_link_header_name4;
                 $post['quick_link_name41']       = $request->quick_link_name41;
@@ -3472,26 +2989,19 @@ To collect the order you need to show the receipt at the counter.
                 $post['quick_link_url43']        = $request->quick_link_url43;
                 $post['quick_link_name44']       = $request->quick_link_name44;
                 $post['quick_link_url44']        = $request->quick_link_url44;
-            }
-            else
-            {
+            } else {
                 $post['enable_quick_link4'] = 'off';
             }
-            if(!empty($footerlogo))
-            {
+            if (!empty($footerlogo)) {
 
                 $post['footer_logo'] = $footerlogo;
-                 
             }
-        }
-        else
-        {
+        } else {
             $post['enable_footer_note'] = 'off';
         }
 
         //Footer 2 Setting
-        if(isset($request->enable_footer) && $request->enable_footer == 'on')
-        {
+        if (isset($request->enable_footer) && $request->enable_footer == 'on') {
             $post['enable_footer'] = $request->enable_footer;
             $post['email']         = $request->email;
             $post['whatsapp']      = $request->whatsapp;
@@ -3501,14 +3011,11 @@ To collect the order you need to show the receipt at the counter.
             $post['youtube']       = $request->youtube;
             $post['footer_note']   = $request->footer_note;
             $post['storejs']       = $request->storejs;
-        }
-        else
-        {
+        } else {
             $post['enable_footer'] = 'off';
         }
 
-        foreach($post as $key => $data)
-        {
+        foreach ($post as $key => $data) {
             $arr = [
                 'name' => $key,
                 'value' => $data,
@@ -3523,7 +3030,8 @@ To collect the order you need to show the receipt at the counter.
                     'name' => $key,
                     'store_id' => $store->id,
                     'theme_name' => $store->theme_dir,
-                ], $arr
+                ],
+                $arr
             );
         }
 
@@ -3534,16 +3042,12 @@ To collect the order you need to show the receipt at the counter.
     {
         $store                = Store::where('slug', $slug)->where('created_by', Auth::user()->id)->first();
         $getStoreThemeSetting = Utility::getStoreThemeSetting($slug, $theme, $name);
-        $dir                  = storage_path('uploads/store_logo/');
+        $dir                  = storage_path('app/public/uploads/store_logo/');
         $brandarray           = explode(',', $getStoreThemeSetting['brand_logo']);
-        if(!empty($name))
-        {
-            foreach($brandarray as $k => $val)
-            {
-                if($val == $name)
-                {
-                    if(!file_exists($dir . $name))
-                    {
+        if (!empty($name)) {
+            foreach ($brandarray as $k => $val) {
+                if ($val == $name) {
+                    if (!file_exists($dir . $name)) {
                         unset($brandarray[$k]);
                         $brand_logo_update        = StoreThemeSettings::where('name', 'brand_logo')->where('store_id', $store->id)->where('theme_name', $store->theme_dir)->first();
                         $brand_logo_update->value = implode(',', $brandarray);
@@ -3555,9 +3059,7 @@ To collect the order you need to show the receipt at the counter.
                                 'id' => $name,
                             ]
                         );
-                    }
-                    else
-                    {
+                    } else {
                         unlink($dir . $name);
                         unset($brandarray[$k]);
                         $post['brand_logo']       = implode(',', $brandarray);
@@ -3573,10 +3075,8 @@ To collect the order you need to show the receipt at the counter.
                         );
                     }
                 }
-
             }
         }
-
     }
 
     public function AddToWishlist($slug, $id)
@@ -3586,22 +3086,17 @@ To collect the order you need to show the receipt at the counter.
 
         $cart = session()->get($store->slug);
 
-        if(!empty($cart['wishlist']) && $cart['wishlist'] != null)
-        {
+        if (!empty($cart['wishlist']) && $cart['wishlist'] != null) {
             $key = false;
-            foreach($cart['wishlist'] as $k => $value)
-            {
-                if($id == $value['product_id'])
-                {
+            foreach ($cart['wishlist'] as $k => $value) {
+                if ($id == $value['product_id']) {
                     $key = $k;
                 }
             }
 
 
-            if($key !== false)
-            {
-                if($cart['wishlist'][$key]['product_id'] == $id)
-                {
+            if ($key !== false) {
+                if ($cart['wishlist'][$key]['product_id'] == $id) {
                     return response()->json(
                         [
                             'is_success' => true,
@@ -3610,15 +3105,10 @@ To collect the order you need to show the receipt at the counter.
                             'message' => __('Already in Wish List.'),
                         ]
                     );
-                }
-                else
-                {
-                    if($product->is_cover != null)
-                    {
-                        $img = \Storage::exists('uploads/is_cover_image/' . ($product->is_cover));
-                    }
-                    else
-                    {
+                } else {
+                    if ($product->is_cover != null) {
+                        $img = \Storage::exists('app/public/uploads/is_cover_image/' . ($product->is_cover));
+                    } else {
                         $img = false;
                     }
 
@@ -3634,21 +3124,16 @@ To collect the order you need to show the receipt at the counter.
                         "product_display" => $product->product_display,
                         "enable_product_variant" => $product->enable_product_variant,
                         "variants_json" => $product->variants_json,
-                        "image" => ($img == true) ? Storage::url('uploads/is_cover_image/' . $product->is_cover) : '',
+                        "image" => ($img == true) ? Storage::url('app/public/uploads/is_cover_image/' . $product->is_cover) : '',
                         "is_active" => $product->is_active,
                         "description" => $product->description,
                         "created_by" => $product->created_by,
                     ];
                 }
-            }
-            else
-            {
-                if($product->is_cover != null)
-                {
-                    $img = \Storage::exists('uploads/is_cover_image/' . ($product->is_cover));
-                }
-                else
-                {
+            } else {
+                if ($product->is_cover != null) {
+                    $img = \Storage::exists('app/public/uploads/is_cover_image/' . ($product->is_cover));
+                } else {
                     $img = false;
                 }
 
@@ -3664,21 +3149,16 @@ To collect the order you need to show the receipt at the counter.
                     "product_display" => $product->product_display,
                     "enable_product_variant" => $product->enable_product_variant,
                     "variants_json" => $product->variants_json,
-                    "image" => ($img == true) ? Storage::url('uploads/is_cover_image/' . $product->is_cover) : '',
+                    "image" => ($img == true) ? Storage::url('app/public/uploads/is_cover_image/' . $product->is_cover) : '',
                     "is_active" => $product->is_active,
                     "description" => $product->description,
                     "created_by" => $product->created_by,
                 ];
             }
-        }
-        else
-        {
-            if($product->is_cover != null)
-            {
-                $img = \Storage::exists('uploads/is_cover_image/' . ($product->is_cover));
-            }
-            else
-            {
+        } else {
+            if ($product->is_cover != null) {
+                $img = \Storage::exists('app/public/uploads/is_cover_image/' . ($product->is_cover));
+            } else {
                 $img = false;
             }
 
@@ -3694,7 +3174,7 @@ To collect the order you need to show the receipt at the counter.
                 "product_display" => $product->product_display,
                 "enable_product_variant" => $product->enable_product_variant,
                 "variants_json" => $product->variants_json,
-                "image" => ($img == true) ? Storage::url('uploads/is_cover_image/' . $product->is_cover) : '',
+                "image" => ($img == true) ? Storage::url('app/public/uploads/is_cover_image/' . $product->is_cover) : '',
                 "is_active" => $product->is_active,
                 "description" => $product->description,
                 "created_by" => $product->created_by,
@@ -3718,18 +3198,15 @@ To collect the order you need to show the receipt at the counter.
     {
         $cart = session()->get($slug);
 
-        foreach($cart['wishlist'] as $key => $product)
-        {
-            if($key == $id)
-            {
+        foreach ($cart['wishlist'] as $key => $product) {
+            if ($key == $id) {
                 unset($cart['wishlist'][$key]);
             }
         }
 
         $wishlist_count = count($cart['wishlist']);
 
-        if($wishlist_count == 0)
-        {
+        if ($wishlist_count == 0) {
             unset($cart['wishlist']);
         }
 
@@ -3752,32 +3229,22 @@ To collect the order you need to show the receipt at the counter.
         $blog           = Blog::where('store_id', $store->id)->count();
         $cart           = session()->get($slug);
 
-        if(!empty($cart) && isset($cart['wishlist']))
-        {
+        if (!empty($cart) && isset($cart['wishlist'])) {
             $products = $cart['wishlist'];
-        }
-        else
-        {
+        } else {
             $products = [];
         }
 
-        if(isset($cart['wishlist']))
-        {
+        if (isset($cart['wishlist'])) {
             $wishlist = $cart['wishlist'];
-        }
-        else
-        {
+        } else {
             $wishlist = [];
         }
         $total_item = 0;
-        if(isset($cart['products']))
-        {
-            if(isset($cart) && !empty($cart['products']))
-            {
+        if (isset($cart['products'])) {
+            if (isset($cart) && !empty($cart['products'])) {
                 $total_item = count($cart['products']);
-            }
-            else
-            {
+            } else {
                 $total_item = 0;
             }
         }
@@ -3789,8 +3256,7 @@ To collect the order you need to show the receipt at the counter.
     {
         $store = Store::where('slug', $slug)->first();
         $order = Order::where('id', $request->order_id)->where('user_id', $store->id)->first();
-        if($order->status == 'pending')
-        {
+        if ($order->status == 'pending') {
             return response()->json(
                 [
                     'status' => __('error'),
@@ -3798,8 +3264,7 @@ To collect the order you need to show the receipt at the counter.
                 ]
             );
         }
-        if($order->status == 'Cancel Order')
-        {
+        if ($order->status == 'Cancel Order') {
             return response()->json(
                 [
                     'status' => __('error'),
@@ -3807,12 +3272,9 @@ To collect the order you need to show the receipt at the counter.
                 ]
             );
         }
-        if($order->status == 'delivered')
-        {
-            if(isset($store->mail_driver) && !empty($store->mail_driver))
-            {
-                try
-                {
+        if ($order->status == 'delivered') {
+            if (isset($store->mail_driver) && !empty($store->mail_driver)) {
+                try {
                     config(
                         [
                             'mail.driver' => $store->mail_driver,
@@ -3839,14 +3301,10 @@ To collect the order you need to show the receipt at the counter.
                             'message' => __('successfully send'),
                         ]
                     );
-                }
-                catch(\Exception $e)
-                {
+                } catch (\Exception $e) {
                     dd($e);
                 }
-            }
-            else
-            {
+            } else {
                 return response()->json(
                     [
                         'status' => __('error'),

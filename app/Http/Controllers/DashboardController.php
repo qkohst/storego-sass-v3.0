@@ -33,7 +33,6 @@ class DashboardController extends Controller
      */
     public function __construct()
     {
-
     }
 
     /**
@@ -43,13 +42,10 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        if(!file_exists(storage_path() . "/installed"))
-        {
+        if (!file_exists(storage_path() . "/installed")) {
             header('location:install');
             die;
-        }
-        else
-        {
+        } else {
             $local = parse_url(config('app.url'))['host'];
 
             // Get the request host
@@ -61,21 +57,17 @@ class DashboardController extends Controller
 
             $store = Store::where('domains', '=', $remote)->where('enable_domain', 'on')->first();
             // If the domain exists
-            if($store && $store->enable_domain == 'on')
-            {
+            if ($store && $store->enable_domain == 'on') {
                 return app('App\Http\Controllers\StoreController')->storeSlug($store->slug);
             }
             $sub_store = Store::where('subdomain', '=', $remote)->where('enable_subdomain', 'on')->first();
-            if($sub_store && $sub_store->enable_subdomain == 'on')
-            {
+            if ($sub_store && $sub_store->enable_subdomain == 'on') {
                 return app('App\Http\Controllers\StoreController')->storeSlug($sub_store->slug);
             }
         }
 
-        if(\Auth::check())
-        {
-            if(\Auth::user()->type == 'Owner')
-            {
+        if (\Auth::check()) {
+            if (\Auth::user()->type == 'Owner') {
                 $store      = Auth::user();
                 $newproduct = Product::where('store_id', $store->current_store)->count();
                 $products   = Product::where('store_id', $store->current_store)->limit(5)->get();
@@ -83,32 +75,25 @@ class DashboardController extends Controller
                 $orders     = Order::where('user_id', $store->current_store)->get();
                 $chartData  = $this->getOrderChart(['duration' => 'week']);
                 $store_id   = Store::where('id', $store->current_store)->first();
-                if($store_id)
-                {
+                if ($store_id) {
                     $app_url               = trim(env('APP_URL'), '/');
                     $store_id['store_url'] = $app_url . '/store/' . $store_id['slug'];
                 }
 
                 $totle_sale  = 0;
                 $totle_order = 0;
-                if(!empty($orders))
-                {
+                if (!empty($orders)) {
                     $pro_qty   = 0;
                     $item_id   = [];
                     $totle_qty = [];
-                    foreach($orders as $order)
-                    {
+                    foreach ($orders as $order) {
                         $order_array = json_decode($order->product);
                         $pro_id      = [];
-                        foreach($order_array as $key => $item)
-                        {
-                            if(!in_array($item->id, $item_id))
-                            {
+                        foreach ($order_array as $key => $item) {
+                            if (!in_array($item->id, $item_id)) {
                                 $item_id[]   = $item->id;
                                 $totle_qty[] = $item->quantity;
-                            }
-                            else
-                            {
+                            } else {
 
                                 $totle_qty[array_search($item->id, $item_id)] += $item->quantity;
                             }
@@ -119,9 +104,7 @@ class DashboardController extends Controller
                 }
 
                 return view('home', compact('products', 'store_id', 'totle_sale', 'store', 'orders', 'totle_order', 'newproduct', 'item_id', 'totle_qty', 'chartData', 'new_orders'));
-            }
-            else
-            {
+            } else {
                 $user                       = \Auth::user();
                 $user['total_user']         = $user->countCompany();
                 $user['total_paid_user']    = $user->countPaidCompany();
@@ -133,29 +116,20 @@ class DashboardController extends Controller
                 $chartData                  = $this->getOrderChart(['duration' => 'week']);
 
                 return view('home', compact('user', 'chartData'));
-
             }
-        }
-        else
-        {
-            if(!file_exists(storage_path() . "/installed"))
-            {
+        } else {
+            if (!file_exists(storage_path() . "/installed")) {
                 header('location:install');
                 die;
-            }
-            else
-            {
+            } else {
                 $settings = Utility::settings();
 
-                if($settings['display_landing_page'] == 'on')
-                {
+                if ($settings['display_landing_page'] == 'on') {
                     $plans       = Plan::get();
                     $get_section = LandingPageSections::orderBy('section_order', 'ASC')->get();
 
                     return view('layouts.landing', compact('get_section', 'plans'));
-                }
-                else
-                {
+                } else {
                     return redirect('login');
                 }
             }
@@ -167,13 +141,10 @@ class DashboardController extends Controller
         $user        = Auth::user();
         $userstore   = UserStore::where('store_id', $user->current_store)->first();
         $arrDuration = [];
-        if($arrParam['duration'])
-        {
-            if($arrParam['duration'] == 'week')
-            {
+        if ($arrParam['duration']) {
+            if ($arrParam['duration'] == 'week') {
                 $previous_week = strtotime("-2 week +1 day");
-                for($i = 0; $i < 14; $i++)
-                {
+                for ($i = 0; $i < 14; $i++) {
                     $arrDuration[date('Y-m-d', $previous_week)] = date('d-M', $previous_week);
                     $previous_week                              = strtotime(date('Y-m-d', $previous_week) . " +1 day");
                 }
@@ -183,14 +154,10 @@ class DashboardController extends Controller
         $arrTask          = [];
         $arrTask['label'] = [];
         $arrTask['data']  = [];
-        foreach($arrDuration as $date => $label)
-        {
-            if(Auth::user()->type == 'Owner')
-            {
+        foreach ($arrDuration as $date => $label) {
+            if (Auth::user()->type == 'Owner') {
                 $data = Order::select(\DB::raw('count(*) as total'))->where('user_id', $userstore->store_id)->whereDate('created_at', '=', $date)->first();
-            }
-            else
-            {
+            } else {
                 $data = Order::select(\DB::raw('count(*) as total'))->whereDate('created_at', '=', $date)->first();
             }
 
@@ -205,8 +172,7 @@ class DashboardController extends Controller
     {
         $price   = 100;
         $orderID = strtoupper(str_replace('.', '', uniqid('', true)));
-        if($price > 0.0)
-        {
+        if ($price > 0.0) {
             Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
             $data = Stripe\Charge::create(
                 [
@@ -222,7 +188,6 @@ class DashboardController extends Controller
 
     public function check()
     {
-
     }
 
     public function profile()
@@ -238,34 +203,31 @@ class DashboardController extends Controller
 
         $user = User::findOrFail($userDetail['id']);
         $this->validate(
-            $request, [
-                        'name' => 'required|max:120',
-                        'email' => 'required|email|unique:users,email,' . $userDetail['id'],
-                        'profile' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
-                    ]
+            $request,
+            [
+                'name' => 'required|max:120',
+                'email' => 'required|email|unique:users,email,' . $userDetail['id'],
+                'profile' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc|max:20480',
+            ]
         );
 
-        if($request->hasFile('profile'))
-        {
+        if ($request->hasFile('profile')) {
             $filenameWithExt = $request->file('profile')->getClientOriginalName();
             $filename        = pathinfo($filenameWithExt, PATHINFO_FILENAME);
             $extension       = $request->file('profile')->getClientOriginalExtension();
             $fileNameToStore = $filename . '_' . time() . '.' . $extension;
 
-            $dir        = storage_path('uploads/profile/');
+            $dir        = storage_path('app/public/uploads/profile/');
             $image_path = $dir . $userDetail['avatar'];
 
-            if(!file_exists($dir))
-            {
+            if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
 
-            $path = $request->file('profile')->storeAs('uploads/profile/', $fileNameToStore);
-
+            $path = $request->file('profile')->storeAs('app/public/uploads/profile/', $fileNameToStore);
         }
 
-        if(!empty($request->profile))
-        {
+        if (!empty($request->profile)) {
             $user['avatar'] = $fileNameToStore;
         }
         $user['name']  = $request['name'];
@@ -278,8 +240,7 @@ class DashboardController extends Controller
 
     public function updatePassword(Request $request)
     {
-        if(\Auth::Check())
-        {
+        if (\Auth::Check()) {
             $request->validate(
                 [
                     'current_password' => 'required',
@@ -290,22 +251,17 @@ class DashboardController extends Controller
             $objUser          = \Auth::user();
             $request_data     = $request->All();
             $current_password = $objUser->password;
-            if(Hash::check($request_data['current_password'], $current_password))
-            {
+            if (Hash::check($request_data['current_password'], $current_password)) {
                 $user_id            = \Auth::User()->id;
                 $obj_user           = User::find($user_id);
                 $obj_user->password = Hash::make($request_data['new_password']);;
                 $obj_user->save();
 
                 return redirect()->route('profile', $objUser->id)->with('success', __('Password successfully updated.'));
-            }
-            else
-            {
+            } else {
                 return redirect()->route('profile', $objUser->id)->with('error', __('Please enter correct current password.'));
             }
-        }
-        else
-        {
+        } else {
             return redirect()->route('profile', \Auth::user()->id)->with('error', __('Something is wrong.'));
         }
     }
@@ -313,12 +269,9 @@ class DashboardController extends Controller
     public function changeMode()
     {
         $usr = Auth::user();
-        if($usr->mode == 'light')
-        {
+        if ($usr->mode == 'light') {
             $usr->mode = 'dark';
-        }
-        else
-        {
+        } else {
             $usr->mode = 'light';
         }
         $usr->save();
